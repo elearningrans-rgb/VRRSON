@@ -26,7 +26,7 @@ window.addEventListener('error', function (e) {
 /* ===== เปิดจาก GitHub Pages: ส่งคำสั่งไป Apps Script ผ่าน fetch (เปิดจาก Apps Script โดยตรง ส่วนนี้จะไม่ทำงาน) ===== */
 (function () {
     if (typeof google !== 'undefined' && google.script) return;
-    var API = ['https:', '', 'script.google.com', 'macros', 's', 'ใส่_DEPLOYMENT_ID_ของระบบจองแว่น', 'exec'].join('/');
+    var API = ['https:', '', 'script.google.com', 'macros', 's', 'AKfycbxR-tEOdJFJ8bGk-2XzHmVpFKOCn0hSNE215okk3DwmfnpU1GS9iseC6F6K-fdcxQgT', 'exec'].join('/');
     function runner(ok, fail) {
         return new Proxy({}, { get: function (_, name) {
             if (name === 'withSuccessHandler') return function (f) { return runner(f, fail); };
