@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<script>
+/* กันเว็บอื่นนำหน้านี้ไปซ้อนใน iframe เพื่อหลอกให้กด (clickjacking) — เฉพาะตอนเปิดจาก GitHub Pages */
+if (location.hostname.endsWith('github.io') && window.top !== window.self) { try { window.top.location = window.self.location.href; } catch (e) { document.documentElement.style.display = 'none'; } }
+window.addEventListener('error', function (e) {
+    if (!e.message || /cdn\.tailwindcss|tailwind is not defined/.test(String(e.message) + String(e.filename))) return;
+    var d = document.getElementById('jsErr');
+    if (!d) { d = document.createElement('div'); d.id = 'jsErr'; d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#7f1d1d;color:#fff;padding:8px 12px;font:13px monospace'; (document.body || document.documentElement).appendChild(d); }
+    d.textContent = 'JS error: ' + e.message + (e.lineno ? ' (บรรทัด ' + e.lineno + ')' : '');
+});
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบจองแว่น VRRSON</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B1A8C">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VRRSON">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAAAwFBMVEXy7+rp5+bj4eLe3Nzb2dnX1dXT0NDPzczMysvKyMfHxcXFw8PCwMO/vcC/vb28u7y7ubq5t7i2tLe1s7OxsLSxr66tq62oqLmqqKejo62joaCdnKWTla+WlJWJi5+CgYd1eZhqbIVdYYtaWVpPT1k9RpJEQkUrNYg3NTcUI5AOHY0jJDYOHI0NHI4NHI0NG40MG40NHIwMG4wcGxwMGowLGo0LGowLGosKGYwJGIwHF4sEE4oAD4kBEYgADocIDC3sBT5FAAACZklEQVR42u3U23KbMBAAUO43c7EggCJDBQgwiITa2HExGPL/f1V5msy0ttO4z80+68xqtdrlDv8Y3Bf4v8Gmbbd0fy/Y08M4jaf58P0+sOnnl3VRZNnzSD8FXUvp8ZiYkqUrSlRPtPsraOlxmuch5EW/xKaju8U8PH0MOjrNdZFEoaTpToCh49oGS7L9CHT9XESawPOioqi6YQVB0OTIKk7dbdD1fcRzvCBKsqxqhgUCFOOY4EUydjdBO0ecIAgiAyzBwnZ9GAeOGWMjO7U3AJ2z83mW4JzBMB0GEILQXDp28fvzvoF2LNjteUHgRVkGwLCWrh8EnssKdxbh8Ud3CSi7EC8ZgpjGolZiywbeA/QVBAxgO3oyHzaXGaaQ4zARlApLZo6BAzwPaSKpkO7Ylp4Mx+5GBpwK2i4VnR2xl8sHBEwjr5pUMx1LjZ77/RXgSCWoOyzrKXIf4AooFi7zsiGGalpyMj9dgITjYSwrFgAeOL/PQhLjkpCy3DWxYarhe8ffwGZcS4pmej7wfBfYC1VWfFLlJGfg9RWpajj+CVjVmaybCy2OIYQYY1JWTVWWVcXO76Cjh1N70enNVCSPmFSxCxFpdr+iyVOSxrbiqNeA9W4u8qZa2T4MECYkz3OCfdvQNF0xpWSmV9+bDgUp8zp79ANWNVrBGPqB7wHLUHS3HjY3Builrp+HE2UzgSCKV6wc32MPoGnW+v1GFyN6HPquPU4TXRfZNy9i8RhFSbFeD+3tme7OH2DfbvtxPNVF/UIp7cfTNI7dZ3uJLYNhGg593x+2T227uWfzdW132H+t+y9wd/wEaJCkgyIBuHIAAAAASUVORK5CYII=">
+<script>
+/* ===== เปิดจาก GitHub Pages: ส่งคำสั่งไป Apps Script ผ่าน fetch (เปิดจาก Apps Script โดยตรง ส่วนนี้จะไม่ทำงาน) ===== */
+(function () {
+    if (typeof google !== 'undefined' && google.script) return;
+    var API = ['https:', '', 'script.google.com', 'macros', 's', 'ใส่_DEPLOYMENT_ID_ของระบบจองแว่น', 'exec'].join('/');
+    function runner(ok, fail) {
+        return new Proxy({}, { get: function (_, name) {
+            if (name === 'withSuccessHandler') return function (f) { return runner(f, fail); };
+            if (name === 'withFailureHandler') return function (f) { return runner(ok, f); };
+            if (typeof name !== 'string') return undefined;
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                var onErr = function (m) { if (fail) fail(new Error(m)); };
+                fetch(API, { method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: name, args: args }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (j) { if (j && j.ok) { if (ok) ok(j.result); } else onErr((j && j.error) || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์'); })
+                    .catch(function () { onErr('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่'); });
+            };
+        } });
+    }
+    window.google = { script: { get run() { return runner(null, null); } } };
+})();
+</script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config = { theme: { extend: { colors: { violet: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' } } } } };</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+.text-navy { color: #0b1a8c; } .bg-navy { background: #0b1a8c; }
+body { font-family: 'Kanit', sans-serif; background: #fff7ed; color: #1c1917; font-size: 16px; }
+.card { background: #fff; border-radius: 1.25rem; border: 1px solid #fed7aa; box-shadow: 0 10px 30px rgba(234, 88, 12, .08); }
+.inp { width: 100%; padding: .7rem .85rem; border: 1px solid #d6d3d1; border-radius: .75rem; background: #fffaf5; font-size: 1rem; color: #1c1917; outline: none; }
+.inp:focus { border-color: #f97316; background: #fff; box-shadow: 0 0 0 3px rgba(249, 115, 22, .28); }
+.lbl { display: block; font-size: .92rem; font-weight: 600; color: #292524; margin-bottom: .35rem; }
+.req { color: #ef4444; }
+.chip { padding: .4rem .9rem; border-radius: 999px; border: 1px solid #e2e8f0; background: #fff; font-size: .82rem; font-weight: 600; color: #475569; }
+.chip.on { background: #ea580c; border-color: #ea580c; color: #fff; }
+.opt { display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border: 1px solid #e2e8f0; border-radius: .8rem; background: #fff; cursor: pointer; font-size: .9rem; }
+.opt:has(input:checked) { border-color: #f97316; background: #fff7ed; color: #c2410c; font-weight: 600; }
+.opt input { accent-color: #f97316; width: 1.05rem; height: 1.05rem; }
+.navb { padding: .55rem 1rem; border-radius: .75rem; font-weight: 600; color: #7c2d12; }
+.navb:hover { background: #ffedd5; }
+.navb.on { background: #ea580c; color: #fff; }
+.st { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 700; }
+.st-รออนุมัติ { background: #fef3c7; color: #92400e; } .st-อนุมัติ { background: #dbeafe; color: #1e40af; } .st-ส่งมอบแล้ว { background: #ede9fe; color: #5b21b6; }
+.st-คืนแล้ว { background: #dcfce7; color: #166534; } .st-ไม่อนุมัติ, .st-ยกเลิก { background: #f1f5f9; color: #64748b; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .4rem; }
+.cday { min-height: 4.6rem; border-radius: .8rem; padding: .4rem .45rem; border: 1px solid #e2e8f0; background: #fff; text-align: left; font-size: .75rem; }
+.cday .n { font-weight: 700; font-size: .9rem; }
+.cday.free { background: #f0fdf4; border-color: #bbf7d0; } .cday.mid { background: #fffbeb; border-color: #fde68a; } .cday.full { background: #fef2f2; border-color: #fecaca; }
+.cday.off { background: #f8fafc; color: #94a3b8; } .cday.sel { outline: 3px solid #f97316; }
+.modal { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
+.modal.show { display: flex; }
+.hidden-v { display: none !important; }
+.btn { padding: .65rem 1.2rem; border-radius: .8rem; font-weight: 700; }
+.btn-p { background: #ea580c; color: #fff; box-shadow: 0 6px 16px rgba(234, 88, 12, .3); } .btn-p:hover { background: #c2410c; }
+.btn-g { background: #f1f5f9; color: #334155; } .btn-g:hover { background: #e2e8f0; }
+.kpi { padding: 1rem; border-radius: 1rem; background: #fff; border: 1px solid #ffedd5; }
+.kpi .v { font-size: 1.6rem; font-weight: 700; color: #0b1a8c; line-height: 1.1; }
+.kpi .l { font-size: .78rem; color: #64748b; }
+.chartbox { position: relative; height: 260px; }
+
+/* ===== หน้าแรก (Landing) ===== */
+.hero { background: radial-gradient(circle at 85% 10%, #fdba74 0, transparent 38%), radial-gradient(circle at 5% 90%, #fed7aa 0, transparent 40%), linear-gradient(135deg, #fb923c 0%, #f97316 55%, #fdba74 100%); }
+.hero h2 { color: #431407; } .hero p { color: #431407; }
+.btn-w { background: #fff; color: #9a3412; font-weight: 700; border-radius: .9rem; padding: .8rem 1.5rem; box-shadow: 0 8px 20px rgba(67, 20, 7, .18); }
+.btn-w:hover { background: #fff7ed; }
+.btn-d { background: #431407; color: #fff; font-weight: 700; border-radius: .9rem; padding: .8rem 1.5rem; }
+.btn-d:hover { background: #7c2d12; }
+.feat { background: #fff; border: 1px solid #fed7aa; border-radius: 1.25rem; padding: 1.4rem; transition: transform .15s, box-shadow .15s; }
+.feat:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(234, 88, 12, .14); }
+.feat .ic { width: 3.1rem; height: 3.1rem; border-radius: 1rem; background: #ea580c; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; margin-bottom: .9rem; }
+.stepn { font-size: 2.6rem; font-weight: 700; line-height: 1; color: #ea580c; }
+.faq { background: #fff; border: 1px solid #fed7aa; border-radius: 1rem; padding: 1rem 1.2rem; }
+.faq summary { cursor: pointer; font-weight: 600; color: #7c2d12; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; color: #ea580c; font-size: 1.4rem; line-height: 1; }
+.faq[open] summary::after { content: '–'; }
+.faq p { margin-top: .6rem; color: #44403c; }
+.toast { background: #fff; border-radius: 1rem; padding: .8rem 1rem; box-shadow: 0 12px 28px rgba(67, 20, 7, .22); display: flex; align-items: center; gap: .75rem; color: #1c1917; }
+.toast .ti { width: 2.4rem; height: 2.4rem; border-radius: .8rem; display: flex; align-items: center; justify-content: center; color: #fff; flex: none; }
+@media print { nav, .noprint { display: none !important; } body { background: #fff; } .card { box-shadow: none; border: 1px solid #e2e8f0; } }
+.spin { width: 2.5rem; height: 2.5rem; border: 4px solid #fed7aa; border-top-color: #ea580c; border-radius: 50%; animation: sp 1s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* ===== ธีมใหม่ (แอป) ===== */
+body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5FB; color: #14152B; }
+.card { border: 1.5px solid #E7E5F2; border-radius: 24px; box-shadow: none; }
+.inp { border: 1.5px solid #DCDAE8; border-radius: 14px; background: #fff; min-height: 48px; }
+.inp:focus { border-color: #EA580C; box-shadow: 0 0 0 3px rgba(234, 88, 12, .18); }
+.opt { border: 1.5px solid #E7E5F2; border-radius: 14px; min-height: 48px; }
+.btn { border-radius: 16px; min-height: 48px; padding: .7rem 1.4rem; }
+.btn-p { background: #EA580C; box-shadow: none; } .btn-p:hover { background: #C2410C; }
+.btn-g { background: #fff; border: 1.5px solid #E7E5F2; color: #33354A; } .btn-g:hover { background: #F1F0F7; }
+.text-navy { color: #0B1A8C; }
+.tile { display: flex; align-items: center; gap: .9rem; padding: 1rem; border-radius: 20px; background: #fff; border: 1.5px solid #E7E5F2; cursor: pointer; min-height: 84px; position: relative; flex: 1 1 15rem; }
+.tile:hover { border-color: #F3B48A; }
+.tile input { position: absolute; opacity: 0; pointer-events: none; }
+.tile .ic { width: 52px; height: 52px; border-radius: 16px; background: #EEF0FB; color: #0B1A8C; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex: none; }
+.tile .tl { font-weight: 600; font-size: 1rem; color: #14152B; } .tile .ts { font-size: .8rem; color: #55586E; }
+.tile:has(input:checked) { border-color: #EA580C; background: #FFF4EC; }
+.tile:has(input:checked) .ic { background: #EA580C; color: #fff; }
+.tile:has(input:focus-visible) { outline: 3px solid #0B1A8C; outline-offset: 2px; }
+.sidebar, .brandsub, .sidecard { display: none; }
+.topbar { display: flex; align-items: center; padding: 14px 18px; background: #F6F5FB; }
+.appmain { padding: 4px 16px 110px; max-width: 1240px; }
+.botnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: #fff; border-top: 1px solid #E7E5F2; display: flex; justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom)); }
+.botnav .navb { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .72rem; font-weight: 500; color: #55586E; background: none; padding: 4px 6px; min-width: 56px; min-height: 48px; border-radius: 12px; }
+.botnav .navb i { font-size: 1.25rem; }
+.botnav .navb.on { color: #EA580C; font-weight: 700; background: none; }
+.pagehead > div > div:first-child { display: none; }
+.pagehead { display: flex; align-items: flex-end; justify-content: space-between; margin: 6px 0 18px; }
+.bookgrid { display: grid; gap: 20px; }
+.bookside { display: flex; flex-direction: column; gap: 16px; order: -1; }
+.hero2 { background: #0B1A8C; color: #fff; border-radius: 24px; padding: 20px 22px; }
+.stock { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 14px; background: #F6F5FB; }
+.rule { display: flex; align-items: center; gap: .7rem; color: #33354A; }
+.rule i { width: 34px; height: 34px; border-radius: 11px; background: #FFF4EC; color: #EA580C; display: flex; align-items: center; justify-content: center; flex: none; }
+.rulecard { display: none; }
+@media (min-width: 1024px) {
+  .sidebar { display: flex; flex-direction: column; gap: 6px; position: fixed; top: 0; bottom: 0; left: 0; width: 260px; background: #0B1A8C; padding: 22px 16px; z-index: 40; overflow-y: auto; }
+  .brand { display: flex; align-items: center; gap: 10px; color: #fff; padding: 2px 6px 22px; }
+  .brand img { width: 72px; height: 50px; object-fit: contain; }
+  .sidenav { display: flex; flex-direction: column; gap: 6px; }
+  .sidenav .navb { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; color: #D5D8F5; font-weight: 500; font-size: .98rem; text-align: left; min-height: 48px; }
+  .sidenav .navb .ni { width: 40px; height: 40px; border-radius: 12px; background: #16259C; display: flex; align-items: center; justify-content: center; flex: none; font-size: 1.05rem; }
+  .sidenav .navb:hover { background: #16259C; color: #fff; }
+  .sidenav .navb.on { background: #fff; color: #0B1A8C; font-weight: 700; }
+  .sidenav .navb.on .ni { background: #EA580C; color: #fff; }
+  .sidefoot { margin-top: auto; font-size: .75rem; color: #C3C8F2; padding: 8px; }
+  .topbar, .botnav { display: none; }
+  .appmain { margin-left: 260px; padding: 32px 40px 48px; }
+  .bookgrid { grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+  .bookside { order: 0; position: sticky; top: 24px; }
+  .rulecard { display: block; }
+  .pagehead > div > div:first-child { display: block; }
+}
+
+.topbar { justify-content: space-between; }
+.bell { width: 44px; height: 44px; border-radius: 14px; border: 1.5px solid #E7E5F2; background: #fff; color: #0B1A8C; font-size: 1.15rem; flex: none; }
+.pagehead { display: none; }
+.hero2 { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.hnum b { font-size: 2.6rem; font-weight: 700; line-height: 1.05; } .hnum span { font-size: 1.1rem; color: #C3C8F2; }
+.hright { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+.hbadge { background: #EA580C; color: #fff; font-size: .8rem; font-weight: 600; padding: 4px 12px; border-radius: 99px; white-space: nowrap; }
+.wz > h2:first-child { font-size: 1.4rem; font-weight: 700; color: #14152B; margin: 4px 0 14px; }
+.wzb { width: 100%; display: flex; align-items: center; gap: 12px; }
+.wzn { font-size: .8rem; font-weight: 600; color: #EA580C; white-space: nowrap; }
+.wzseg { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.wzseg button { height: 6px; border-radius: 9px; background: #DCDAE8; padding: 0; position: relative; }
+.wzseg button.on { background: #EA580C; }
+.wzseg button span { display: none; }
+.ptiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.ptiles .tile { flex-direction: column; align-items: flex-start; min-height: 120px; gap: 10px; }
+.rulestrip { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #fff; border: 1.5px solid #E7E5F2; font-size: .85rem; color: #33354A; margin-bottom: 18px; }
+.rulestrip .ri { width: 36px; height: 36px; border-radius: 12px; background: #FFF4EC; color: #EA580C; display: flex; align-items: center; justify-content: center; flex: none; }
+.wzfoot { display: flex; gap: 10px; margin-top: 24px; }
+.wzfoot .btn-p { flex: 1; min-height: 54px; font-size: 1.05rem; border-radius: 18px; }
+.wzfoot .btn-g { min-height: 54px; border-radius: 18px; } .wzfoot .bk { display: none; }
+#v-book > .bookgrid > div > .card { padding: 18px; }
+@media (min-width: 1024px) {
+  .ptiles { grid-template-columns: repeat(4, 1fr); }
+  .rulestrip { display: none; }
+  .wzseg { gap: 10px; }
+  .wzfoot { justify-content: space-between; } .wzfoot .btn-p { flex: 0 0 auto; padding: 0 28px; } .wzfoot .bk { display: inline; }
+  .wz > h2:first-child { font-size: 1.6rem; }
+  .ptiles .tile { min-height: 140px; }
+}
+
+#v-book > .bookgrid > div > .card { background: transparent !important; border: 0 !important; padding: 0 !important; }
+@media (max-width: 1023px) {
+  .hero2 { padding: 18px; border-radius: 24px; }
+  .hnum b { font-size: 2.5rem; }
+  .wz > h2:first-child { font-size: 1.3rem; margin: 6px 0 12px; }
+  .ptiles .tile { min-height: 96px; padding: 14px; border-radius: 20px; }
+  .ptiles .tile .ic { width: 44px; height: 44px; border-radius: 14px; font-size: 1.15rem; }
+  .ptiles .tile .tl { font-size: .95rem; } .ptiles .tile .ts { font-size: .75rem; }
+  #wzBar { margin-bottom: 10px; }
+}
+
+/* ===== รอบ 5: เมนูหน้าหลัก ปุ่มสมดุล ฟุตเตอร์ แถบไล่เฉด ===== */
+@media (min-width: 1024px) { .sidebar { background: linear-gradient(180deg, #0B1A8C 0%, #1428B4 45%, #2E4FE0 100%); } .sidenav .navb .ni { background: rgba(255,255,255,.12); } .sidenav .navb:hover { background: rgba(255,255,255,.12); } }
+.hero2 { background: linear-gradient(135deg, #0B1A8C 0%, #1F38CC 100%); }
+.botnav .navb { min-width: 0; flex: 1; font-size: .68rem; }
+.ptiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ptiles .tile { flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 18px !important; text-align: center; gap: 10px; aspect-ratio: 1 / .82; min-height: 0; padding: 14px; }
+.ptiles .tile > span:last-child { display: block; }
+@media (min-width: 640px) { .ptiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } .ptiles .tile { aspect-ratio: 1 / 1; } }
+@media (min-width: 1024px) { .ptiles .tile { aspect-ratio: auto; min-height: 190px; padding-top: 30px !important; } .ptiles .tile .ic { width: 64px; height: 64px; font-size: 1.6rem; border-radius: 20px; } .ptiles .tile .tl { font-size: 1.05rem; } }
+@media (min-width: 1440px) { .ptiles .tile { min-height: 210px; } }
+.appfoot { margin-top: 40px; padding: 20px 0 8px; border-top: 1px solid #E7E5F2; font-size: .8rem; color: #55586E; }
+.af-top { display: flex; gap: 14px; align-items: center; }
+.af-top img { width: 56px; height: 40px; object-fit: contain; flex: none; }
+.af-cc { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #E7E5F2; font-size: .75rem; }
+
+/* ===== รอบ 6: ฟอร์มขั้นที่ 2 และฟุตเตอร์แถบสี ===== */
+.sec { background: #fff; border: 1.5px solid #E7E5F2; border-radius: 20px; padding: 18px; margin-bottom: 16px; }
+.sech { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.seci { width: 44px; height: 44px; border-radius: 14px; background: #EEF0FB; color: #0B1A8C; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex: none; }
+.sect { font-weight: 700; font-size: 1.05rem; color: #14152B; } .secs { font-size: .8rem; color: #55586E; } .secs a { color: #EA580C; font-weight: 600; text-decoration: underline; }
+.fgrid3, .fgrid2 { display: grid; gap: 14px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 640px) { .fgrid2 { grid-template-columns: 1fr 1fr; } .fgrid3 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .fgrid3 { grid-template-columns: 1fr 1fr 1fr; } .sec { padding: 22px 24px; } }
+.hint { font-size: .75rem; color: #55586E; margin-top: 6px; min-height: 1em; }
+.chk { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid #E7E5F2; border-radius: 16px; background: #fff; cursor: pointer; position: relative; min-height: 64px; }
+.chk input { position: absolute; opacity: 0; pointer-events: none; }
+.chk .chki { width: 40px; height: 40px; border-radius: 12px; background: #F1F0F7; color: #55586E; display: flex; align-items: center; justify-content: center; flex: none; }
+.chk b { font-size: .92rem; color: #14152B; font-weight: 600; } .chk small { font-size: .75rem; color: #55586E; }
+.chk:has(input:checked) { border-color: #EA580C; background: #FFF4EC; } .chk:has(input:checked) .chki { background: #EA580C; color: #fff; }
+.chk:has(input:focus-visible) { outline: 3px solid #0B1A8C; outline-offset: 2px; }
+#roomOkWrap.hidden-v { display: none !important; }
+.appfoot { margin: 40px -16px 0; padding: 0; border: 0; background: linear-gradient(120deg, #0B1A8C 0%, #1A30BE 55%, #2E4FE0 100%); border-top: 4px solid #EA580C; color: #fff; }
+.af-in { padding: 22px 20px calc(96px + env(safe-area-inset-bottom)); font-size: .82rem; line-height: 1.6; }
+.af-l1 { font-weight: 600; } .af-l2 { color: #D5D8F5; }
+.af-cc { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); font-size: .75rem; color: #C3C8F2; }
+@media (min-width: 1024px) { .appfoot { margin: 48px -40px -48px; } .af-in { padding: 24px 40px; } }
+
+/* ===== รอบ 7: เมนูซ้ายสมดุล ===== */
+@media (min-width: 1024px) {
+  .sidebar { padding: 24px 18px; }
+  .brand { align-items: center; padding: 0 4px 10px; }
+  .brandsub { display: block; font-size: .78rem; line-height: 1.55; color: #D5D8F5; padding: 0 6px 18px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.16); white-space: nowrap; }
+  .sidenav { gap: 10px; }
+  .sidecard { margin-top: auto; display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 16px; background: rgba(255,255,255,.1); color: #E4E7FB; font-size: .8rem; line-height: 1.5; }
+  .sidecard i { width: 38px; height: 38px; border-radius: 12px; background: #EA580C; color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+  .sidecard b { color: #fff; }
+  .sidenav .navb { min-height: 60px; padding: 8px 12px; font-size: 1.02rem; gap: 14px; }
+  .sidenav .navb .ni { width: 44px; height: 44px; font-size: 1.15rem; border-radius: 14px; }
+}
+
+/* ===== รอบ 8: แสดงจุดประสงค์ที่เลือก ===== */
+#v-book > .bookgrid > div > .card { position: relative; }
+.purchip { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 10px; border-radius: 18px; background: #FFF4EC; border: 1.5px solid #EA580C; margin: 0 0 12px; }
+.pc-ic { width: 46px; height: 46px; border-radius: 14px; background: #EA580C; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex: none; }
+.pc-tx { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; flex: 1; }
+.pc-l { font-size: .7rem; color: #9A3412; font-weight: 600; } .pc-tx b { font-size: .98rem; color: #14152B; } .pc-tx small { font-size: .75rem; color: #55586E; }
+.pc-ch { font: inherit; font-size: .78rem; font-weight: 600; color: #EA580C; background: #fff; border: 1.5px solid #F3B48A; border-radius: 12px; padding: 0 12px; min-height: 36px; flex: none; }
+.pc-ch:hover { background: #EA580C; color: #fff; }
+@media (min-width: 1024px) { .purchip { position: absolute; right: 0; top: 26px; margin: 0; max-width: 380px; } #wz2 > h2:first-child, #wz3 > h2:first-child, #wz4 > h2:first-child { margin-bottom: 30px; } }
+
+/* ===== รอบ 9: ฟุตเตอร์ชิดล่างทุกหน้า ===== */
+.appmain { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; }
+.appmain > footer.appfoot { margin-top: auto !important; }
+.appmain > section { width: 100%; margin-bottom: 40px; }
+@media (min-width: 1024px) { .appmain { max-width: none; } .appmain > section { max-width: 1400px; } .appfoot { margin-left: -40px !important; margin-right: -40px !important; margin-bottom: -48px !important; } .appmain > section + footer, .appmain > footer { position: relative; } }
+@media print { .sidebar, .topbar, .botnav { display: none !important; } .appmain { margin: 0; padding: 0; } }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+    <a href="javascript:goHome()" class="brand"><img src="data:image/png;base64,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" alt="โลโก้ VRRSON"><div><div class="text-xl font-bold leading-tight">VRRSON</div><div class="text-xs" style="color:#C3C8F2">ระบบจองแว่น VR</div></div></a>
+    <div class="brandsub">โรงเรียนพยาบาลรามาธิบดี<br>คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี</div>
+    <nav class="sidenav" aria-label="เมนูหลัก"><button class="navb on" data-v="home" onclick="goHome()"><span class="ni"><i class="fas fa-house"></i></span>หน้าหลัก</button><button class="navb" data-v="book" onclick="go('book')"><span class="ni"><i class="fas fa-vr-cardboard"></i></span>จองแว่น</button><button class="navb" data-v="cal" onclick="go('cal')"><span class="ni"><i class="fas fa-calendar-days"></i></span>ปฏิทินวันว่าง</button><button class="navb" data-v="track" onclick="go('track')"><span class="ni"><i class="fas fa-magnifying-glass"></i></span>ตรวจสอบการจอง</button><button class="navb" data-v="dash" onclick="go('dash')"><span class="ni"><i class="fas fa-chart-simple"></i></span>แดชบอร์ดผู้บริหาร</button><button class="navb" data-v="admin" onclick="go('admin')"><span class="ni"><i class="fas fa-shield-halved"></i></span>ผู้ดูแลระบบ</button></nav>
+    <div class="sidecard"><i class="fas fa-clock"></i><div><b>เวลาให้บริการ</b><br>จ.–ศ. 08:00–16:00 น.</div></div>
+</aside>
+<header class="topbar"><a href="javascript:goHome()" class="flex items-center gap-3"><img src="data:image/png;base64,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" alt="โลโก้ VRRSON" style="width:64px;height:44px;object-fit:contain"><div><div class="text-lg font-bold leading-tight" style="color:#14152B">VRRSON</div><div class="text-xs" style="color:#55586E">ระบบจองแว่น VR · โรงเรียนพยาบาลรามาธิบดี</div></div></a><button class="bell" onclick="go('track')" aria-label="ตรวจสอบการจองของฉัน"><i class="fa-regular fa-bell"></i></button></header>
+<nav class="botnav" aria-label="เมนูหลัก"><button class="navb on" data-v="home" onclick="goHome()" aria-label="หน้าหลัก"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>หน้าหลัก</span></button><button class="navb" data-v="book" onclick="go('book')" aria-label="จองแว่น"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 9.5a2.5 2.5 0 0 1 2.5-2.5h14a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5h-3.5l-2-2.5h-3l-2 2.5H5a2.5 2.5 0 0 1-2.5-2.5z"/></svg><span>จองแว่น</span></button><button class="navb" data-v="cal" onclick="go('cal')" aria-label="ปฏิทินวันว่าง"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>ปฏิทิน</span></button><button class="navb" data-v="track" onclick="go('track')" aria-label="ตรวจสอบการจอง"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8.5 11l2 2 3.5-3.5"/></svg><span>ตรวจสอบ</span></button><button class="navb" data-v="dash" onclick="go('dash')" aria-label="แดชบอร์ดผู้บริหาร"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/></svg><span>ผู้บริหาร</span></button><button class="navb" data-v="admin" onclick="go('admin')" aria-label="ผู้ดูแลระบบ"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.8-3.4 8-8 9-4.6-1-8-4.2-8-9V6z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg><span>Admin</span></button></nav>
+
+<main class="appmain">
+<!-- ===== จองแว่น ===== -->
+<section id="v-book">
+<div class="pagehead"><div><div class="text-sm font-semibold" style="color:#EA580C">ระบบจองแว่น VR · โรงเรียนพยาบาลรามาธิบดี</div><h1 style="color:#14152B;font-size:2rem;font-weight:700;line-height:1.2;margin:0">จองแว่น VR</h1></div><span id="leadTxt" class="hidden-v">7</span></div>
+<div class="bookgrid"><div class="min-w-0">
+    <div class="card p-5 md:p-7">
+        <div id="wzBar" class="flex items-center mb-6"></div>
+        <div id="purChip" class="purchip hidden-v"></div>
+<div id="wz1" class="wz"><h2>จุดประสงค์การขอใช้แว่น</h2>
+        <div class="ptiles" id="purposeBox"></div>
+<div class="rulestrip"><span class="ri"><i class="fas fa-clock"></i></span><span>ยืมได้ไม่เกิน <b class="js-maxwd">3</b> วันทำการ · รับ–คืน 08:00–16:00 น. · ไม่เกิน <b class="js-max">18</b> อันต่อครั้ง</span></div>
+        <p class="text-sm" style="color:#55586E;margin-top:4px">แตะเลือกจุดประสงค์เพื่อไปขั้นถัดไป</p></div>
+<div id="wz2" class="wz hidden-v"><h2>วันและเวลา</h2>
+        <section class="sec">
+            <div class="sech"><span class="seci"><i class="fas fa-calendar-days"></i></span><div><div class="sect">วันรับ–คืนแว่น</div><div class="secs">ยืมได้ไม่เกิน <b class="js-maxwd">3</b> วันทำการ · รับ/คืนเฉพาะวันทำการ · <a href="javascript:go('cal')">ดูปฏิทินวันว่าง</a></div></div></div>
+            <div class="fgrid3">
+                <div><label class="lbl">วันรับแว่น <span class="req">*</span></label><input type="date" id="fDate" class="inp" onchange="dateChange()"><div class="hint" id="minTxt"></div></div>
+                <div><label class="lbl">วันคืนแว่น</label><input type="date" id="fDateEnd" class="inp" onchange="endChange()"><div class="hint">ไม่ระบุ = คืนวันเดียวกัน</div></div>
+                <div id="slotWrap"><label class="lbl">ช่วงเวลา <span class="req">*</span></label><select id="fSlot" class="inp" onchange="slotChange()"><option value="08:00-12:00">ช่วงเช้า 08:00–12:00 น.</option><option value="13:00-16:00">ช่วงบ่าย 13:00–16:00 น.</option><option value="08:00-16:00">ทั้งวัน 08:00–16:00 น.</option><option value="custom">กำหนดเวลาเอง</option></select></div>
+            </div>
+            <div id="customT" class="hidden-v fgrid2 mt-3"><div><label class="lbl" id="lblStart">เวลาเริ่ม</label><input type="time" id="fStart" class="inp" value="09:00" min="08:00" max="16:00" onchange="checkAvail()"></div><div><label class="lbl" id="lblEnd">เวลาสิ้นสุด</label><input type="time" id="fEnd" class="inp" value="12:00" min="08:00" max="16:00" onchange="checkAvail()"></div></div>
+        </section>
+        <section class="sec">
+            <div class="sech"><span class="seci"><i class="fas fa-location-dot"></i></span><div><div class="sect">สถานที่</div><div class="secs">สถานที่รับ–คืนแว่นและห้องที่ใช้</div></div></div>
+            <div class="fgrid2">
+                <div><label class="lbl">สถานที่ใช้ / รับ-คืนแว่น <span class="req">*</span></label><select id="fPlace" class="inp" onchange="placeChange()"></select></div>
+                <div id="placeOtherWrap" class="hidden-v"><label class="lbl">ระบุสถานที่</label><input id="fPlaceOther" class="inp"></div>
+                <div id="roomWrap"><label class="lbl">ห้องที่ใช้ <span class="req">*</span></label><input id="fRoom" class="inp" placeholder="เช่น ห้อง 401 อาคารเรียนรวม"></div>
+            </div>
+            <div class="fgrid2 mt-3">
+                <label class="chk" id="roomOkWrap"><input type="checkbox" id="fRoomOk"><span class="chki"><i class="fas fa-door-open"></i></span><span><b>จองห้องเรียบร้อยแล้ว <span class="req">*</span></b><br><small>ยืนยันว่าจองห้องไว้แล้ว</small></span></label>
+                <label class="chk"><input type="checkbox" id="fOff" onchange="offChange()"><span class="chki"><i class="fas fa-truck"></i></span><span><b>นำแว่นออกนอกสถานที่</b><br><small>ใช้นอกวิทยาเขต / นอกอาคารของคณะ</small></span></label>
+            </div>
+        <div id="offWrap" class="hidden-v mb-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="grid md:grid-cols-3 gap-3 mb-3">
+                <div class="md:col-span-3"><label class="lbl">ชื่อสถานที่ที่นำแว่นไปใช้ <span class="req">*</span></label><input id="fOffPlace" class="inp" placeholder="ชื่อสถานที่ และที่อยู่โดยย่อ"></div>
+                <div class="md:col-span-2"><label class="lbl">ผู้รับผิดชอบแว่นระหว่างยืม <span class="req">*</span></label><input id="fResp" class="inp" placeholder="ชื่อ-นามสกุล"></div>
+                <div><label class="lbl">เบอร์โทรผู้รับผิดชอบ <span class="req">*</span></label><input id="fRespPhone" class="inp"></div>
+            </div>
+            <label class="opt"><input type="checkbox" id="fLiab"> ข้าพเจ้ารับผิดชอบกรณีแว่นชำรุดหรือสูญหายระหว่างยืม <span class="req">*</span></label>
+        </div>
+        </section>
+        <div id="availBox" class="text-sm mb-2"></div>
+        <div class="wzfoot"><button class="btn btn-g" onclick="wzGo(1)" aria-label="ย้อนกลับ"><i class="fas fa-arrow-left"></i><span class="bk"> ย้อนกลับ</span></button><button class="btn btn-p" onclick="wzGo(3)">ถัดไป: ข้อมูลผู้จอง <i class="fas fa-arrow-right"></i></button></div></div>
+<div id="wz3" class="wz hidden-v"><h2>รายละเอียดและผู้จอง</h2>
+        <div class="grid md:grid-cols-3 gap-3 mb-6">
+            <div class="md:col-span-2"><label class="lbl" id="courseLbl">รหัสและชื่อรายวิชา <span class="req">*</span></label><input id="fCourse" class="inp" placeholder="เช่น RANS 202 การพยาบาลเด็กและวัยรุ่น 1"></div>
+            <div id="levelWrap"><label class="lbl">ระดับการศึกษา</label><select id="fLevel" class="inp"><option value="">-- ไม่ระบุ --</option><option>ปริญญาตรี</option><option>ปริญญาโท</option><option>ปริญญาเอก</option><option>ปริญญาตรี inter</option><option>ปริญญาโท inter</option><option>ปริญญาเอก inter</option><option>หลักสูตรระยะสั้น</option></select></div>
+        </div>
+                <h2 class="font-bold text-navy text-lg mb-3">รายละเอียดการใช้</h2>
+        <label class="lbl">เรื่องที่ใช้ <span class="req">*</span> <span class="font-normal text-slate-400">(เลือกได้มากกว่า 1 เรื่อง)</span></label>
+        <div class="grid md:grid-cols-3 gap-2 mb-4" id="topicBox"></div>
+        <div class="grid md:grid-cols-3 gap-3 mb-3">
+            <div><label class="lbl">จำนวนแว่นที่ต้องการ <span class="req">*</span></label><input type="number" id="fCount" class="inp" min="1" max="18" value="10"></div>
+            <div><label class="lbl">จำนวนผู้เข้าร่วม <span class="req">*</span></label><input type="number" id="fPpl" class="inp" min="1" value="40"></div>
+        </div>
+        <label class="lbl">รายละเอียดเพิ่มเติมถึงเจ้าหน้าที่</label>
+        <textarea id="fExtra" class="inp mb-5" rows="3" placeholder="เช่น ต้องการให้เจ้าหน้าที่ติดตั้งก่อนเริ่ม 30 นาที"></textarea>
+        <h2 class="font-bold text-navy text-lg mb-3 mt-2">ข้อมูลผู้จอง</h2>
+
+        <div class="flex flex-wrap gap-2 mb-3">
+            <label class="tile"><input type="radio" name="who" value="ภายใน" checked onchange="whoChange()"><span class="ic"><i class="fas fa-id-badge"></i></span><span><span class="tl">บุคลากร / นักศึกษา</span><br><span class="ts">มหาวิทยาลัยมหิดล</span></span></label>
+            <label class="tile"><input type="radio" name="who" value="ภายนอก" onchange="whoChange()"><span class="ic"><i class="fas fa-building"></i></span><span><span class="tl">บุคคล / หน่วยงานภายนอก</span><br><span class="ts">แนบหนังสือขอยืม PDF</span></span></label>
+        </div>
+        <div id="extNote" class="hidden-v mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm"><i class="fas fa-circle-info mr-1"></i> ผู้ยืมจากภายนอก: ต้องแนบหนังสือขอยืมอย่างเป็นทางการ (PDF) นำฉบับจริงมาแสดงต่อเจ้าหน้าที่ก่อนรับแว่น และต้องรอเจ้าหน้าที่ตรวจสอบ/อนุมัติ</div>
+        <div class="grid md:grid-cols-3 gap-3 mb-6">
+            <div><label class="lbl">ชื่อ-นามสกุล <span class="req">*</span></label><input id="fName" class="inp" placeholder="เช่น อาจารย์ ดร.สมใจ ใจดี"></div>
+            <div><label class="lbl">อีเมลมหาวิทยาลัย <span class="req">*</span></label><div class="flex"><input id="fEmail" class="inp rounded-r-none" placeholder="ชื่ออีเมล"><span id="emSuffix" class="px-3 flex items-center bg-slate-100 border border-l-0 border-slate-200 rounded-r-xl text-sm text-slate-500">@mahidol.ac.th</span></div></div>
+            <div><label class="lbl">เบอร์โทรศัพท์ <span class="req">*</span></label><input id="fPhone" class="inp" placeholder="เบอร์ภายใน หรือมือถือ"></div>
+        </div>
+        <div id="extWrap" class="hidden-v grid md:grid-cols-3 gap-3 mb-6">
+            <div class="md:col-span-3"><label class="lbl">หน่วยงาน / สถาบัน <span class="req">*</span></label><input id="fOrg" class="inp" placeholder="เช่น โรงเรียน / โรงพยาบาล / บริษัท ...."></div>
+            <div class="md:col-span-3"><label class="lbl">แนบหนังสือขอยืมอย่างเป็นทางการ (ไฟล์ PDF ไม่เกิน 5 MB) <span class="req">*</span></label><input type="file" id="fLetterFile" accept="application/pdf,.pdf" class="inp" onchange="letterPick()"><div id="letterInfo" class="text-xs text-slate-500 mt-1"></div></div>
+        </div>
+        <div class="wzfoot"><button class="btn btn-g" onclick="wzGo(2)" aria-label="ย้อนกลับ"><i class="fas fa-arrow-left"></i><span class="bk"> ย้อนกลับ</span></button><button class="btn btn-p" onclick="wzGo(4)">ถัดไป: ตรวจทาน <i class="fas fa-arrow-right"></i></button></div></div>
+<div id="wz4" class="wz hidden-v"><h2>ตรวจทานก่อนส่งคำขอ</h2>
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label>เว็บไซต์<input id="fHp" type="text" tabindex="-1" autocomplete="off"></label></div>
+        <div id="wzSum" class="rounded-xl border border-orange-200 bg-orange-50/50 p-4 text-sm space-y-1.5"></div>
+        <p class="text-xs text-slate-500 mt-3">เมื่อส่งคำขอแล้ว เจ้าหน้าที่จะตรวจสอบและแจ้งผลทางอีเมล ตรวจสอบสถานะได้ที่เมนู “ตรวจสอบการจอง”</p>
+        <div class="wzfoot"><button class="btn btn-g" onclick="wzGo(3)" aria-label="ย้อนกลับ"><i class="fas fa-arrow-left"></i><span class="bk"> ย้อนกลับ</span></button><button class="btn btn-p" onclick="submitBook()"><i class="fas fa-paper-plane"></i> ส่งคำขอจอง</button></div></div>
+    </div>
+</div>
+    <aside class="bookside">
+        <div class="hero2">
+            <div><div class="text-sm" style="color:#C3C8F2">แว่นพร้อมใช้ขณะนี้</div><div class="hnum"><b id="heroReady">–</b><span> / <span id="heroTotal">–</span> อัน</span></div></div>
+            <div class="hright"><span class="hbadge">จองได้ตั้งแต่ <span id="minHero">–</span></span><span class="text-xs" style="color:#C3C8F2">ล่วงหน้า <b class="js-lead">7</b> วันทำการ</span></div>
+        </div>
+        <div class="card p-5 rulecard"><div class="font-bold text-lg mb-3">แว่นพร้อมใช้</div><div class="grid gap-2 text-sm" id="stockBox"></div></div>
+        <div class="card p-5 text-sm space-y-3 rulecard">
+            <div class="font-bold text-lg">กติกาการยืม</div>
+            <div class="rule"><i class="fas fa-calendar-check"></i><span>จองล่วงหน้า <b class="js-lead">7</b> วันทำการ</span></div>
+            <div class="rule"><i class="fas fa-vr-cardboard"></i><span>ไม่เกิน <b class="js-max">18</b> อันต่อครั้ง</span></div>
+            <div class="rule"><i class="fas fa-clock"></i><span>รับ–คืน 08:00–16:00 น.</span></div>
+            <div class="rule"><i class="fas fa-hourglass-half"></i><span>ยืมได้ไม่เกิน <b class="js-maxwd">3</b> วันทำการ</span></div>
+        </div>
+    </aside>
+</div>
+</section>
+
+<!-- ===== ปฏิทิน ===== -->
+<section id="v-cal" class="hidden-v">
+    <div class="card p-5 md:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h1 class="text-xl font-bold text-navy">ปฏิทินวันว่างของแว่น VR</h1>
+            <div class="flex items-center gap-2"><button class="btn btn-g" onclick="calMove(-1)"><i class="fas fa-chevron-left"></i></button><div id="calTitle" class="font-bold w-40 text-center"></div><button class="btn btn-g" onclick="calMove(1)"><i class="fas fa-chevron-right"></i></button></div>
+        </div>
+        <div class="flex flex-wrap gap-3 text-xs mb-3"><span><span class="inline-block w-3 h-3 rounded bg-green-200 mr-1"></span>ว่างมาก</span><span><span class="inline-block w-3 h-3 rounded bg-amber-200 mr-1"></span>ว่างบางส่วน</span><span><span class="inline-block w-3 h-3 rounded bg-red-200 mr-1"></span>เต็ม</span><span><span class="inline-block w-3 h-3 rounded bg-slate-200 mr-1"></span>วันหยุด / วันที่ผ่านมาแล้ว</span></div>
+        <div class="cal text-center text-xs font-bold text-slate-500 mb-1"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+        <div class="cal" id="calGrid"></div>
+        <div id="calDay" class="mt-5"></div>
+    </div>
+</section>
+
+<!-- ===== ตรวจสอบ ===== -->
+<section id="v-track" class="hidden-v">
+    <div class="card p-5 md:p-7 max-w-3xl mx-auto">
+        <h1 class="text-xl font-bold text-navy mb-1">ตรวจสอบการจอง</h1>
+        <p class="text-sm text-slate-500 mb-4">กรอกอีเมลที่ใช้จอง ระบบจะส่งรหัส OTP 6 หลักไปที่อีเมลนั้น</p>
+        <label class="lbl">อีเมลที่ใช้จอง</label>
+        <div class="flex gap-2 mb-3"><input id="tEmail" class="inp" placeholder="ชื่ออีเมล@mahidol.ac.th" onkeydown="if(event.key==='Enter')reqOtp()"><button class="btn btn-p whitespace-nowrap" onclick="reqOtp()"><i class="fas fa-paper-plane mr-1"></i>ส่งรหัส OTP</button></div>
+        <div id="tOtpWrap" class="hidden-v mb-4">
+            <label class="lbl">รหัส OTP (ตรวจในอีเมล)</label>
+            <div class="flex gap-2"><input id="tOtp" class="inp tracking-widest text-center text-lg" maxlength="6" inputmode="numeric" placeholder="______" onkeydown="if(event.key==='Enter')verOtp()"><button class="btn btn-p whitespace-nowrap" onclick="verOtp()">ยืนยัน</button></div>
+        </div>
+        <div id="trackOut"></div>
+    </div>
+</section>
+
+<!-- ===== แดชบอร์ดผู้บริหาร ===== -->
+<section id="v-dash" class="hidden-v">
+    <div id="dLogin" class="card p-6 max-w-sm mx-auto">
+        <h1 class="text-xl font-bold text-navy mb-1 text-center"><i class="fas fa-chart-pie mr-1"></i> แดชบอร์ดผู้บริหาร</h1>
+        <p class="text-xs text-slate-500 text-center mb-4">ผู้ดูแลระบบที่เข้าสู่ระบบ Admin แล้ว ดูได้ทันที</p>
+        <label class="lbl">ชื่อผู้ใช้</label><input id="eUser" class="inp mb-3">
+        <label class="lbl">รหัสผ่าน</label><input id="ePass" type="password" class="inp mb-4" onkeydown="if(event.key==='Enter')exLogin()">
+        <button class="btn btn-p w-full" onclick="exLogin()">เข้าสู่ระบบ</button>
+    </div>
+    <div id="dMain" class="hidden-v">
+        <div class="card p-5 mb-4">
+            <div class="flex flex-wrap items-end justify-between gap-3">
+                <div><h1 class="text-xl font-bold text-navy">สรุปการใช้แว่น VR</h1><div class="text-sm text-slate-500">ผู้ใช้งาน <b id="dWho"></b> · ข้อมูล ณ <span id="dAt"></span></div></div>
+                <div class="flex flex-wrap items-end gap-2 noprint">
+                    <div><label class="lbl">วันที่ใช้ ตั้งแต่</label><input type="date" id="dFrom" class="inp"></div>
+                    <div><label class="lbl">ถึง</label><input type="date" id="dTo" class="inp"></div>
+                    <button class="btn btn-p" onclick="dLoad()"><i class="fas fa-filter"></i> แสดง</button>
+                    <button class="btn btn-g" onclick="$('dFrom').value='';$('dTo').value='';dLoad()">ทั้งหมด</button>
+                    <button class="btn btn-g" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์ / PDF</button>
+                    <button class="btn btn-g text-red-600" id="dOut" onclick="exLogout()"><i class="fas fa-right-from-bracket"></i> ออก</button>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="dKpi"></div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="card p-4"><div class="font-bold mb-2">จำนวนการจองรายเดือน</div><div class="chartbox"><canvas id="cMonth"></canvas></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">สถานะการจอง</div><div class="chartbox"><canvas id="cStatus"></canvas></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">ประเภทการใช้</div><div class="chartbox"><canvas id="cPurpose"></canvas></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">เรื่อง (โปรแกรม VR) ที่ใช้</div><div class="chartbox"><canvas id="cTopic"></canvas></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">สถานที่ใช้</div><div class="chartbox"><canvas id="cPlace"></canvas></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">วันในสัปดาห์ที่ใช้</div><div class="chartbox"><canvas id="cWeek"></canvas></div></div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="card p-4"><div class="font-bold mb-2">คลังแว่น</div><div id="dStock" class="text-sm"></div></div>
+            <div class="card p-4"><div class="font-bold mb-2">รายวิชา / กิจกรรมที่ใช้มากที่สุด</div><div id="dCourse" class="text-sm"></div></div>
+        </div>
+        <div class="card p-4 mb-4"><div class="font-bold mb-2">การจองที่กำลังจะถึง</div><div id="dUp" class="text-sm overflow-x-auto"></div></div>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="card p-4"><div class="font-bold mb-2 text-red-700"><i class="fas fa-triangle-exclamation mr-1"></i>ยังไม่คืนแว่น (เลยวันใช้แล้ว)</div><div id="dOver" class="text-sm"></div></div>
+            <div class="card p-4"><div class="font-bold mb-2 text-amber-700"><i class="fas fa-screwdriver-wrench mr-1"></i>แว่นชำรุด / สูญหายหลังใช้</div><div id="dIssue" class="text-sm"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Admin ===== -->
+<section id="v-admin" class="hidden-v">
+    <div id="adLogin" class="card p-6 max-w-sm mx-auto">
+        <h1 class="text-xl font-bold text-navy mb-4 text-center"><i class="fas fa-user-shield mr-1"></i> เข้าสู่ระบบผู้ดูแล</h1>
+        <label class="lbl">ชื่อผู้ใช้</label><input id="aUser" class="inp mb-3">
+        <label class="lbl">รหัสผ่าน</label><input id="aPass" type="password" class="inp mb-4" onkeydown="if(event.key==='Enter')adLogin()">
+        <button class="btn btn-p w-full" onclick="adLogin()">เข้าสู่ระบบ</button>
+    </div>
+    <div id="adMain" class="hidden-v">
+        <div class="card p-5 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div><h1 class="text-xl font-bold text-navy">จัดการการจองแว่น VR</h1><div class="text-sm text-slate-500">เข้าสู่ระบบโดย <b id="adWho"></b></div></div>
+                <div class="flex flex-wrap gap-2"><button class="btn btn-g" onclick="adLoad()"><i class="fas fa-rotate"></i> รีเฟรช</button><button class="btn btn-g" onclick="setOpen()"><i class="fas fa-gear"></i> ตั้งค่าแว่น</button><button class="btn btn-g" onclick="adTestNotify()"><i class="fas fa-bell"></i> ทดสอบแจ้งเตือน</button><button class="btn btn-g" onclick="pwOpen()"><i class="fas fa-key"></i> รหัสผ่าน</button><button class="btn btn-g text-red-600" onclick="adLogout()"><i class="fas fa-right-from-bracket"></i> ออก</button></div>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3" id="adChips"></div>
+            <div class="grid md:grid-cols-3 gap-2"><select id="adWhen" class="inp" onchange="adRender()"><option value="">ทุกวันที่ใช้</option><option value="today">ใช้วันนี้</option><option value="next">วันที่ใช้ยังไม่ถึง</option><option value="past">วันที่ใช้ผ่านไปแล้ว</option></select>
+                <input id="adQ" class="inp md:col-span-2" placeholder="ค้นหา ชื่อ / รหัสจอง / รายวิชา / ห้อง" oninput="adRender()"></div>
+        </div>
+        <div class="card overflow-x-auto"><table class="w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-left"><tr><th class="p-3">วันที่ใช้</th><th class="p-3">ผู้จอง</th><th class="p-3">รายวิชา / กิจกรรม</th><th class="p-3">แว่น / สถานที่</th><th class="p-3">สถานะ</th><th class="p-3 text-right">จัดการ</th></tr></thead><tbody id="adBody"></tbody></table></div>
+    </div>
+</section>
+<footer class="appfoot">
+    <div class="af-in">
+        <div class="af-l1">งานสนับสนุนการศึกษาและสถาบันการแพทย์จักรีนฤบดินทร์ · หน่วยสื่อสารองค์กรและสารสนเทศ</div>
+        <div class="af-l2">โรงเรียนพยาบาลรามาธิบดี คณะแพทยศาสตร์โรงพยาบาลรามาธิบดี มหาวิทยาลัยมหิดล</div>
+        <div class="af-cc">© <span id="ccYear">2569</span> โรงเรียนพยาบาลรามาธิบดี มหาวิทยาลัยมหิดล · สงวนลิขสิทธิ์</div>
+    </div>
+</footer>
+<script>document.getElementById('ccYear').textContent = new Date().getFullYear() + 543;</script>
+</main>
+
+<!-- ===== หน้าต่าง ===== -->
+<div id="mAct" class="modal"><div class="card p-6 w-full max-w-lg"><h3 id="mActT" class="font-bold text-lg text-navy mb-3"></h3><div id="mActB"></div>
+    <div class="flex justify-end gap-2 mt-5"><button class="btn btn-g" onclick="hide('mAct')">ยกเลิก</button><button class="btn btn-p" id="mActOk">บันทึก</button></div></div></div>
+<div id="mDate" class="modal" onclick="if (event.target === this) hide('mDate')"><div class="card p-4 w-full max-w-sm">
+    <div class="flex items-center justify-between mb-3"><button type="button" class="btn btn-g" onclick="thMove(-1)"><i class="fas fa-chevron-left"></i></button><div id="thTitle" class="font-bold text-navy text-lg"></div><button type="button" class="btn btn-g" onclick="thMove(1)"><i class="fas fa-chevron-right"></i></button></div>
+    <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-1"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+    <div id="thGrid" class="grid grid-cols-7 gap-1"></div>
+    <div id="thHint" class="text-xs text-slate-500 mt-3"></div>
+    <div class="flex justify-between mt-3"><button type="button" class="btn btn-g text-sm" onclick="thClear()">ล้างค่า</button><button type="button" class="btn btn-g text-sm" onclick="hide('mDate')">ปิด</button></div>
+</div></div>
+<div id="mMsg" class="modal"><div class="card p-6 w-full max-w-md text-center"><div id="mMsgI" class="text-4xl mb-3"></div><div id="mMsgT" class="whitespace-pre-line text-slate-700"></div><button class="btn btn-p mt-5" onclick="hide('mMsg')">ตกลง</button></div></div>
+<div id="busy" class="modal"><div class="card p-6 flex flex-col items-center gap-3"><div class="spin"></div><div id="busyT" class="text-sm text-slate-600">กำลังดำเนินการ...</div></div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+/* jsa: ใส่ข้อความเป็นอาร์กิวเมนต์ใน onclick="..." อย่างปลอดภัย (esc อย่างเดียวไม่พอ เพราะเบราว์เซอร์ถอด &#39; กลับเป็น ' ก่อนรัน JS) */
+const jsa = s => esc(JSON.stringify(String(s === undefined || s === null ? '' : s)));
+/* num: ตัวเลขจากเซิร์ฟเวอร์ ถ้าไม่ใช่ตัวเลขให้เป็น 0 กันการแทรก HTML */
+const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+/* safeUrl: อนุญาตเฉพาะลิงก์ https ของ Google (กันลิงก์ javascript: หรือเว็บหลอก) */
+const safeUrl = u => { try { const x = new URL(String(u)); return x.protocol === 'https:' && /(^|\.)google(usercontent)?\.com$/.test(x.hostname) ? x.href : ''; } catch (e) { return ''; } };
+const thD = y => { if (!y) return '-'; const p = String(y).split('-'); return Number(p[2]) + '/' + Number(p[1]) + '/' + (Number(p[0]) + 543); };
+const TH_M = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+function show(id) { $(id).classList.add('show'); } function hide(id) { $(id).classList.remove('show'); }
+function busy(on, t) { $('busyT').textContent = t || 'กำลังดำเนินการ...'; on ? show('busy') : hide('busy'); }
+function msg(t, ok) { $('mMsgI').innerHTML = ok ? '<i class="fas fa-circle-check text-green-500"></i>' : '<i class="fas fa-circle-exclamation text-amber-500"></i>'; $('mMsgT').textContent = t; show('mMsg'); }
+function call(fn, args, ok, quiet) {
+    if (!quiet) busy(true);
+    google.script.run.withSuccessHandler(r => { busy(false); ok && ok(r); }).withFailureHandler(e => {
+        busy(false); const m = (e && e.message) || String(e);
+        if (m.indexOf('SESSION_EXPIRED') === 0) { adLogout(); if (dsh.token) exLogout(); return msg('หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่'); }
+        msg(m.replace(/^Error:\s*/, ''));
+    })[fn].apply(null, args || []);
+}
+function navSync(v) {
+    v = v || (document.getElementById('v-book').classList.contains('hidden-v') ? '' : 'book');
+    const k = v === 'book' && wz === 1 ? 'home' : v;
+    document.querySelectorAll('.navb').forEach(b => b.classList.toggle('on', b.dataset.v === k));
+}
+function goHome() { go('book'); wz = 1; wzShow(); window.scrollTo({ top: 0 }); }
+function go(v) {
+    ['book', 'cal', 'track', 'dash', 'admin'].forEach(x => $('v-' + x).classList.toggle('hidden-v', x !== v));
+    window.scrollTo({ top: 0 });
+    navSync(v);
+    if (v === 'cal') calLoad();
+    if (v === 'admin' && adm.token) adLoad();
+    if (v === 'dash') dOpen();
+}
+
+/* ---------- ฟอร์มจอง ---------- */
+let INFO = null;
+function loadInfo() {
+    call('getInfo', [], r => {
+        INFO = r;
+        $('leadTxt').textContent = r.leadDays; $('fDate').min = r.minDate; $('minTxt').textContent = 'จองได้ตั้งแต่ ' + r.minDateTh + ' เป็นต้นไป'; const TM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], md = String(r.minDate).split('-'); $('minHero').textContent = Number(md[2]) + ' ' + TM[Number(md[1]) - 1] + ' ' + String(Number(md[0]) + 543).slice(2); $('heroReady').textContent = r.ready; $('heroTotal').textContent = r.total;
+        $('fCount').max = r.maxCount; $('fDateEnd').min = r.minDate;
+        document.querySelectorAll('.js-maxwd').forEach(e => e.textContent = r.maxWorkdays);
+        document.querySelectorAll('.js-lead').forEach(e => e.textContent = r.leadDays); document.querySelectorAll('.js-max').forEach(e => e.textContent = r.maxCount);
+        $('stockBox').innerHTML = r.sites.map(s => `<div class="stock"><span class="font-semibold">${esc(s.name)}</span><span><b class="text-2xl" style="color:#0B1A8C">${num(s.ready)}</b> <span style="color:#55586E">/ ${num(s.total)} อัน</span></span></div>`).join('');
+        window.PSUB = p => /สอน/.test(p) ? 'รายวิชา / ภาคปฏิบัติ' : /อบรม|สาธิต/.test(p) ? 'โครงการ งานบริการวิชาการ' : /วิจัย/.test(p) ? 'เก็บข้อมูล / ทดลอง' : 'ระบุรายละเอียดเอง';
+        window.PIC = p => /สอน/.test(p) ? 'fa-book-open' : /อบรม|สาธิต/.test(p) ? 'fa-chalkboard-user' : /วิจัย/.test(p) ? 'fa-flask' : 'fa-ellipsis';
+        const PUR = (r.purposes || []).slice(); if (!PUR.includes('วิจัย')) PUR.splice(Math.max(0, PUR.length - 1), 0, 'วิจัย');
+        $('purposeBox').innerHTML = PUR.map((p, i) => `<label class="tile"><input type="radio" name="purpose" value="${esc(p)}" ${i === 0 ? 'checked' : ''} onchange="purposeChange()" onclick="purposeChange(); setTimeout(() => wzGo(2), 150)"><span class="ic"><i class="fas ${PIC(p)}"></i></span><span><span class="tl">${esc(p)}</span><br><span class="ts">${PSUB(p)}</span></span></label>`).join('');
+        $('topicBox').innerHTML = r.topics.map(t => `<label class="opt"><input type="checkbox" name="topic" value="${esc(t)}"> ${esc(t)}</label>`).join('');
+        $('fPlace').innerHTML = '<option value="">-- เลือกสถานที่ --</option>' + r.places.map(p => `<option>${esc(p)}</option>`).join('') + '<option>อื่นๆ</option>';
+        purposeChange();
+    }, true);
+}
+function purposeChange() {
+    const p = document.querySelector('input[name=purpose]:checked')?.value;
+    const teach = p === 'การเรียนการสอน';
+    $('courseLbl').innerHTML = (teach ? 'รหัสและชื่อรายวิชา' : 'ชื่อกิจกรรม / โครงการ') + ' <span class="req">*</span>';
+    $('fCourse').placeholder = teach ? 'เช่น RANS 202 การพยาบาลเด็กและวัยรุ่น 1' : 'เช่น อบรมเชิงปฏิบัติการการคัดแยกผู้ป่วย';
+    $('levelWrap').classList.toggle('hidden-v', !teach);
+}
+const isMulti = () => { const a = $('fDate').value, b = $('fDateEnd').value; return !!(a && b && b > a); };
+function syncSlot() {
+    const m = isMulti();
+    $('slotWrap').classList.toggle('hidden-v', m); $('customT').classList.toggle('hidden-v', !(m || $('fSlot').value === 'custom'));
+    $('lblStart').textContent = m ? 'เวลารับแว่น (วันที่ใช้)' : 'เวลาเริ่ม'; $('lblEnd').textContent = m ? 'เวลาคืนแว่น (วันที่คืน)' : 'เวลาสิ้นสุด';
+}
+function dateChange() { const a = $('fDate').value; $('fDateEnd').min = a || (INFO ? INFO.minDate : ''); if ($('fDateEnd').value && $('fDateEnd').value < a) $('fDateEnd').value = ''; syncSlot(); checkAvail(); }
+function endChange() { syncSlot(); checkAvail(); }
+function slotChange() { syncSlot(); checkAvail(); }
+function whoChange() {
+    const ext = document.querySelector('input[name=who]:checked').value === 'ภายนอก';
+    $('extWrap').classList.toggle('hidden-v', !ext); $('extNote').classList.toggle('hidden-v', !ext); $('emSuffix').classList.toggle('hidden-v', ext);
+    $('fEmail').classList.toggle('rounded-r-none', !ext); $('fEmail').placeholder = ext ? 'อีเมลที่ใช้ติดต่อ เช่น name@company.com' : 'ชื่ออีเมล';
+}
+function offChange() { const on = $('fOff').checked; $('offWrap').classList.toggle('hidden-v', !on); $('roomWrap').classList.toggle('hidden-v', on); $('roomOkWrap').classList.toggle('hidden-v', on); }
+function placeChange() { $('placeOtherWrap').classList.toggle('hidden-v', $('fPlace').value !== 'อื่นๆ'); checkAvail(); }
+function times() { const s = $('fSlot').value; return (isMulti() || s === 'custom') ? [$('fStart').value, $('fEnd').value] : s.split('-'); }
+function checkAvail() {
+    const d = $('fDate').value, [s, e] = times(), pl = $('fPlace').value;
+    if (!d || !s || !e) { $('availBox').innerHTML = ''; return; }
+    $('availBox').innerHTML = '<span class="text-slate-400"><i class="fas fa-spinner fa-spin"></i> กำลังตรวจจำนวนแว่นว่าง...</span>';
+    call('getInfo', [d, s, e, pl, $('fDateEnd').value], r => {
+        if (r.available === undefined) { $('availBox').innerHTML = ''; return; }
+        const c = r.available === 0 ? 'bg-red-50 text-red-700 border-red-200' : r.available < 5 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-green-50 text-green-800 border-green-200';
+        $('availBox').innerHTML = `<div class="p-3 rounded-xl border ${c}"><i class="fas fa-vr-cardboard mr-1"></i> ช่วงเวลานี้จองได้สูงสุด <b>${num(r.available)}</b> อัน` +
+            (r.siteFree && r.siteFree.length > 1 ? ' (' + r.siteFree.map(x => esc(x.name) + ' ว่าง ' + num(x.free)).join(', ') + ')' : '') + '</div>';
+        $('fCount').max = Math.min(r.maxCount, Math.max(1, r.available));
+    }, true);
+}
+
+
+/* ---------- ตัวเลือกวันที่ แบบ วัน/เดือน/พ.ศ. (แทน input date ของเบราว์เซอร์ที่แสดง ค.ศ. แบบ เดือน/วัน) ---------- */
+const THP = { el: null, mode: 'work', ym: '', cache: {} };
+const pad2 = n => String(n).padStart(2, '0');
+const thShow = v => v ? Number(v.slice(8)) + '/' + Number(v.slice(5, 7)) + '/' + (Number(v.slice(0, 4)) + 543) : '';
+function thDateInit(id, mode) {
+    const el = $(id), btn = document.createElement('button'), desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    btn.type = 'button'; btn.id = id + 'Th'; btn.className = 'inp text-left flex items-center justify-between gap-2';
+    const refresh = () => { btn.innerHTML = `<span class="${el.value ? '' : 'text-slate-400'}">${el.value ? thShow(el.value) : 'วว/ดด/พ.ศ.'}</span><i class="fas fa-calendar-days text-orange-600"></i>`; };
+    Object.defineProperty(el, 'value', { configurable: true, get() { return desc.get.call(el); }, set(v) { desc.set.call(el, v); refresh(); } });
+    el.classList.add('hidden-v'); el.parentNode.insertBefore(btn, el);
+    btn.onclick = () => { THP.el = el; THP.mode = mode; THP.cache = {}; THP.ym = (el.value || (id === 'fDateEnd' && $('fDate').value) || TODAY).slice(0, 7); thRender(); thLoad(THP.ym); show('mDate'); };
+    refresh();
+}
+function thLoad(ym) {
+    if (THP.mode !== 'work' || THP.cache[ym]) return;
+    try { google.script.run.withSuccessHandler(r => { THP.cache[ym] = r; if (THP.ym === ym) thRender(); }).withFailureHandler(() => {}).getCalendar(ym); } catch (e) {}
+}
+function thMove(d) { let [y, m] = THP.ym.split('-').map(Number); m += d; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } THP.ym = y + '-' + pad2(m); thRender(); thLoad(THP.ym); }
+function thRender() {
+    const [y, m] = THP.ym.split('-').map(Number), el = THP.el, cal = THP.cache[THP.ym];
+    const first = new Date(y, m - 1, 1).getDay(), n = new Date(y, m, 0).getDate();
+    let g = '<div></div>'.repeat(first);
+    for (let d = 1; d <= n; d++) {
+        const date = y + '-' + pad2(m) + '-' + pad2(d), dow = new Date(y, m - 1, d).getDay(), info = cal && cal.days[d - 1];
+        let off = !!((el.min && date < el.min) || (el.max && date > el.max));
+        if (THP.mode === 'work' && !off) off = info ? !info.work : (dow === 0 || dow === 6);
+        const cls = off ? 'bg-stone-100 text-stone-300 cursor-not-allowed' : date === el.value ? 'bg-orange-600 text-white' : (info && info.free === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-50 hover:bg-orange-200');
+        g += `<button type="button" ${off ? 'disabled' : `onclick="thPick('${date}')"`} title="${info && info.holiday ? esc(info.holiday) : ''}" class="h-10 rounded-lg text-sm font-semibold ${cls} ${date === TODAY ? 'ring-2 ring-orange-500' : ''}">${d}</button>`;
+    }
+    $('thTitle').textContent = TH_M[m - 1] + ' ' + (y + 543); $('thGrid').innerHTML = g;
+    $('thHint').innerHTML = THP.mode === 'work' ? `วงกรอบส้ม = วันนี้ · สีเทา = เลือกไม่ได้ (วันหยุด หรือยังไม่ถึงวันที่จองได้ ต้องจองล่วงหน้าอย่างน้อย ${INFO ? INFO.leadDays : 7} วันทำการ) · สีแดง = แว่นเต็มบางช่วงเวลา` : 'วงกรอบส้ม = วันนี้';
+}
+function thPick(date) { THP.el.value = date; THP.el.dispatchEvent(new Event('change', { bubbles: true })); hide('mDate'); }
+function thClear() { THP.el.value = ''; THP.el.dispatchEvent(new Event('change', { bubbles: true })); hide('mDate'); }
+
+/* ---------- Wizard 4 ขั้นตอน ---------- */
+let wz = 1;
+const WZ_T = ['จุดประสงค์', 'วันและเวลา', 'รายละเอียดและผู้จอง', 'ยืนยัน'];
+function purChipDraw() {
+    const el = $('purChip'), inp = document.querySelector('input[name=purpose]:checked');
+    if (!el) return;
+    if (wz === 1 || !inp || !window.PIC) { el.classList.add('hidden-v'); return; }
+    const p = inp.value;
+    el.innerHTML = `<span class="pc-ic"><i class="fas ${PIC(p)}"></i></span><span class="pc-tx"><span class="pc-l">จุดประสงค์ที่เลือก</span><b>${esc(p)}</b><small>${PSUB(p)}</small></span><button type="button" class="pc-ch" onclick="wzGo(1)">เปลี่ยน</button>`;
+    el.classList.remove('hidden-v');
+}
+function wzDraw() {
+    setTimeout(purChipDraw, 0);
+    $('wzBar').innerHTML = `<div class="wzb"><span class="wzn">ขั้นที่ ${wz} / 4</span><div class="wzseg">${WZ_T.map((t, i) => `<button type="button" aria-label="ขั้นที่ ${i + 1} ${t}" ${i + 1 < wz ? `onclick="wzGo(${i + 1})"` : 'disabled'} class="${i + 1 <= wz ? 'on' : ''}"><span>${i + 1}. ${t}</span></button>`).join('')}</div></div>`;
+}
+const MAX_PDF = 5 * 1024 * 1024;
+const fmtSize = n => n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+function letterPick() {
+    const f = $('fLetterFile').files[0], info = $('letterInfo');
+    if (!f) { info.textContent = ''; return; }
+    if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { $('fLetterFile').value = ''; info.textContent = ''; return msg('หนังสือขอยืมต้องเป็นไฟล์ PDF เท่านั้น'); }
+    if (f.size > MAX_PDF) { $('fLetterFile').value = ''; info.textContent = ''; return msg('ไฟล์ใหญ่เกิน 5 MB (ไฟล์นี้ ' + fmtSize(f.size) + ')\nกรุณาลดขนาดไฟล์แล้วแนบใหม่'); }
+    info.innerHTML = '<i class="fas fa-file-pdf text-red-600 mr-1"></i>' + esc(f.name) + ' · ' + fmtSize(f.size);
+}
+function readLetter() {
+    return new Promise((ok, no) => {
+        const f = $('fLetterFile').files[0]; if (!f) return ok(null);
+        const r = new FileReader(); r.onload = () => ok({ name: f.name, b64: String(r.result).split(',')[1] || '' }); r.onerror = () => no(new Error('อ่านไฟล์ไม่สำเร็จ กรุณาแนบใหม่')); r.readAsDataURL(f);
+    });
+}
+function wzCheck(n) {
+    const who = document.querySelector('input[name=who]:checked').value === 'ภายนอก', off = $('fOff').checked, bad = t => { msg(t); return false; };
+    if (n === 3) {
+        if (!$('fCourse').value.trim()) return bad('กรุณาระบุ' + ($('courseLbl').textContent.replace('*', '').trim()));
+        if (!document.querySelector('input[name=topic]:checked')) return bad('กรุณาเลือกเรื่องที่ใช้อย่างน้อย 1 เรื่อง');
+        const c = parseInt($('fCount').value, 10); if (!(c >= 1 && c <= Number($('fCount').max || 18))) return bad('จำนวนแว่นต้องอยู่ระหว่าง 1–' + ($('fCount').max || 18) + ' อัน');
+        if (!(parseInt($('fPpl').value, 10) >= 1)) return bad('กรุณาระบุจำนวนผู้เข้าร่วม');
+        if (!$('fName').value.trim()) return bad('กรุณากรอกชื่อ-นามสกุล');
+        if (!$('fEmail').value.trim()) return bad(who ? 'กรุณากรอกอีเมล' : 'กรุณากรอกอีเมลมหาวิทยาลัย');
+        if (who && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test($('fEmail').value.trim())) return bad('กรุณากรอกอีเมลให้ถูกต้อง');
+        if (!$('fPhone').value.trim()) return bad('กรุณากรอกเบอร์โทรศัพท์');
+        if (who && !$('fOrg').value.trim()) return bad('กรุณาระบุหน่วยงาน / สถาบันของผู้ยืม');
+        if (who && !$('fLetterFile').files[0]) return bad('กรุณาแนบหนังสือขอยืมอย่างเป็นทางการ (ไฟล์ PDF)');
+    }
+    if (n === 2) {
+        const [s, e] = times();
+        if (!$('fDate').value) return bad('กรุณาเลือกวันที่ใช้');
+        if (!s || !e) return bad('กรุณาระบุเวลา');
+        if (!isMulti() && s >= e) return bad('เวลาสิ้นสุดต้องหลังเวลาเริ่ม');
+        if (!$('fPlace').value) return bad('กรุณาเลือกสถานที่ใช้ / รับ-คืนแว่น');
+        if ($('fPlace').value === 'อื่นๆ' && !$('fPlaceOther').value.trim()) return bad('กรุณาระบุสถานที่ใช้งาน (อื่นๆ)');
+        if (off) {
+            if (!$('fOffPlace').value.trim()) return bad('กรุณาระบุชื่อสถานที่ที่นำแว่นไปใช้');
+            if (!$('fResp').value.trim() || !$('fRespPhone').value.trim()) return bad('กรุณาระบุชื่อและเบอร์โทรผู้รับผิดชอบแว่นระหว่างยืม');
+            if (!$('fLiab').checked) return bad('กรุณาติ๊กยืนยันรับผิดชอบกรณีแว่นชำรุดหรือสูญหาย');
+        } else if (!$('fRoom').value.trim()) return bad('กรุณาระบุห้องที่ใช้');
+        if (!off && !$('fRoomOk').checked) return bad('กรุณาจองห้องให้เรียบร้อยก่อน แล้วติ๊กยืนยัน');
+    }
+    return true;
+}
+function wzGo(n) {
+    if (n > wz) { for (let i = wz; i < n; i++) if (!wzCheck(i)) { wz = i; wzShow(); return; } }
+    wz = n; wzShow();
+}
+function wzShow() {
+    [1, 2, 3, 4].forEach(i => $('wz' + i).classList.toggle('hidden-v', i !== wz));
+    wzDraw(); if (wz === 4) wzSummary(); navSync();
+    $('wzBar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function wzSummary() {
+    const [s, e] = times(), who = document.querySelector('input[name=who]:checked').value, off = $('fOff').checked;
+    const place = $('fPlace').value === 'อื่นๆ' ? 'อื่นๆ: ' + $('fPlaceOther').value.trim() : $('fPlace').value;
+    const row = (k, v) => v ? `<div class="flex gap-2"><span class="w-36 shrink-0 text-slate-500">${k}</span><span class="font-semibold">${esc(v)}</span></div>` : '';
+    $('wzSum').innerHTML = row('ผู้ยืม', $('fName').value.trim() + ' (' + who + ')') + row('อีเมล / โทร', $('fEmail').value.trim() + ($('emSuffix').classList.contains('hidden-v') ? '' : '@mahidol.ac.th') + ' · ' + $('fPhone').value.trim()) +
+        row('หน่วยงาน', who === 'ภายนอก' ? $('fOrg').value.trim() : '') + row('หนังสือขอยืม', who === 'ภายนอก' && $('fLetterFile').files[0] ? $('fLetterFile').files[0].name : '') +
+        row('วันที่ใช้ / รับ', thD($('fDate').value)) + row('วันที่คืน', isMulti() ? thD($('fDateEnd').value) : 'วันเดียวกัน') + row(isMulti() ? 'เวลารับ–คืน' : 'เวลา', s + '–' + e + ' น.') +
+        row('สถานที่รับ-คืน', place) + (off ? row('นำไปใช้นอกสถานที่', $('fOffPlace').value.trim() + ' · ผู้รับผิดชอบ ' + $('fResp').value.trim() + ' ' + $('fRespPhone').value.trim()) : row('ห้อง', $('fRoom').value.trim())) +
+        row('ประเภทการใช้', document.querySelector('input[name=purpose]:checked')?.value) + row('รายวิชา / กิจกรรม', $('fCourse').value.trim()) +
+        row('เรื่องที่ใช้', [...document.querySelectorAll('input[name=topic]:checked')].map(x => x.value).join(', ')) +
+        row('จำนวนแว่น', $('fCount').value + ' อัน · ผู้เข้าร่วม ' + $('fPpl').value + ' คน') + row('รายละเอียดเพิ่มเติม', $('fExtra').value.trim());
+}
+function submitBook() {
+    const ext = document.querySelector('input[name=who]:checked').value === 'ภายนอก';
+    if (!ext) return submitBookNow(null);
+    readLetter().then(L => { if (!L) return msg('กรุณาแนบหนังสือขอยืมอย่างเป็นทางการ (ไฟล์ PDF)'); submitBookNow(L); }).catch(e => msg(e.message));
+}
+function submitBookNow(letter) {
+    const em = $('fEmail').value.trim();
+    const [s, e] = times();
+    const who = document.querySelector('input[name=who]:checked').value, ext = who === 'ภายนอก';
+    const data = { name: $('fName').value.trim(), email: ext || em.includes('@') ? em : em + '@mahidol.ac.th', phone: $('fPhone').value.trim(),
+        who: who, org: $('fOrg').value.trim(), letterName: letter ? letter.name : '', letterB64: letter ? letter.b64 : '', dateEnd: $('fDateEnd').value,
+        offsite: $('fOff').checked, offPlace: $('fOffPlace').value.trim(), resp: $('fResp').value.trim(), respPhone: $('fRespPhone').value.trim(), liab: $('fLiab').checked,
+        purpose: document.querySelector('input[name=purpose]:checked')?.value || '', course: $('fCourse').value.trim(), level: $('fLevel').value,
+        date: $('fDate').value, start: s, end: e, place: $('fPlace').value, placeOther: $('fPlaceOther').value.trim(), room: $('fRoom').value.trim(),
+        topics: [...document.querySelectorAll('input[name=topic]:checked')].map(x => x.value), count: $('fCount').value, participants: $('fPpl').value,
+        roomBooked: $('fRoomOk').checked, extra: $('fExtra').value.trim(), hp: ($('fHp') || {}).value || '' };
+    if (!em) return msg(ext ? 'กรุณากรอกอีเมล' : 'กรุณากรอกอีเมลมหาวิทยาลัย');
+    busy(true, 'กำลังส่งคำขอจอง...');
+    call('submitBooking', [data], r => {
+        try { localStorage.setItem('vrBooker', JSON.stringify({ n: data.name, e: em, p: data.phone })); } catch (x) {}
+        msg(`ส่งคำขอจองเรียบร้อยแล้ว\nวันที่ใช้ ${r.date} เวลา ${r.start}–${r.end} น. จำนวน ${r.count} อัน\n\nระบบส่งอีเมลยืนยันไปที่ ${data.email}\nเจ้าหน้าที่จะแจ้งผลการอนุมัติทางอีเมล`, true);
+        ['fCourse', 'fRoom', 'fExtra', 'fDate', 'fDateEnd', 'fOffPlace', 'fResp', 'fRespPhone'].forEach(id => $(id).value = ''); $('fRoomOk').checked = false; $('fLiab').checked = false; $('fOff').checked = false; $('fLetterFile').value = ''; $('letterInfo').textContent = ''; offChange(); syncSlot(); wz = 4; wzGo(1); $('availBox').innerHTML = '';
+        document.querySelectorAll('input[name=topic]').forEach(x => x.checked = false);
+    }, true);
+}
+
+/* ---------- ปฏิทิน ---------- */
+let calYm = new Date().toISOString().slice(0, 7), calData = null, calSel = '';
+function calMove(n) { const [y, m] = calYm.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); calYm = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); calLoad(); }
+/* ปฏิทิน: โหลดล่วงหน้าเดือนนี้และเดือนถัดไปตั้งแต่เปิดเว็บ · มีข้อมูลในเครื่องแล้วแสดงทันที แล้วอัปเดตเบื้องหลัง */
+const CALC = {}, CALP = {};
+const ymAdd = (ym, n) => { const [y, m] = ym.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+function calFetch(ym, cb) {
+    if (CALP[ym]) { if (cb) CALP[ym].push(cb); return; }
+    CALP[ym] = cb ? [cb] : [];
+    google.script.run.withSuccessHandler(r => { CALC[ym] = r; const l = CALP[ym]; delete CALP[ym]; l.forEach(f => f(r)); })
+        .withFailureHandler(e => { const l = CALP[ym]; delete CALP[ym]; if (l.length) msg(String((e && e.message) || e).replace(/^Error:\s*/, '')); })
+        .getCalendar(ym);
+}
+function calPrefetch() { calFetch(calYm); calFetch(ymAdd(calYm, 1)); }
+function calLoad() {
+    const [y, m] = calYm.split('-').map(Number), ym = calYm;
+    $('calTitle').textContent = TH_M[m - 1] + ' ' + (y + 543);
+    const show = r => { if (calYm === ym) { calData = r; calRender(); } };
+    if (CALC[ym]) { show(CALC[ym]); calFetch(ym, show); }
+    else { $('calGrid').innerHTML = '<div class="col-span-7 text-center text-slate-400 py-10"><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</div>'; calFetch(ym, show); }
+    [-1, 1].forEach(n => { const k = ymAdd(ym, n); if (!CALC[k]) calFetch(k); });
+}
+const TODAY = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+function calRender() {
+    const r = calData, first = new Date(r.ym + '-01T12:00:00').getDay();
+    let h = '';
+    for (let i = 0; i < first; i++) h += '<div></div>';
+    r.days.forEach(d => {
+        const n = Number(d.date.slice(8));
+        let cls = 'off', info = d.holiday ? esc(d.holiday) : '';
+        if (d.work && d.date >= TODAY) { cls = d.free === 0 ? 'full' : d.free < r.ready * 0.5 ? 'mid' : 'free'; info = d.free === 0 ? 'เต็ม' : 'ว่าง ' + num(d.free) + ' อัน'; }
+        else if (d.work && d.list.length) info = 'จองแล้ว ' + d.list.length;
+        else if (!d.work && d.list.length) info = (info ? info + ' · ' : '') + 'มีการจอง';
+        h += `<button class="cday ${cls} ${calSel === d.date ? 'sel' : ''}" onclick="calPick(${jsa(d.date)})"><div class="n">${n}</div><div>${info}</div>${d.list.length ? `<div class="text-violet-700 font-semibold">${d.list.length} รายการ</div>` : ''}</button>`;
+    });
+    $('calGrid').innerHTML = h;
+}
+function calPick(date) {
+    calSel = date; calRender();
+    const d = calData.days.find(x => x.date === date);
+    $('calDay').innerHTML = `<div class="p-4 rounded-xl bg-slate-50 border"><div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div class="font-bold">${thD(date)}${d.holiday ? ' · ' + esc(d.holiday) : ''}</div>` +
+        (d.bookable ? `<button class="btn btn-p text-sm" onclick="bookOn(${jsa(date)})"><i class="fas fa-plus mr-1"></i>จองวันนี้</button>` : `<span class="text-xs text-slate-500">${d.work ? (d.date >= TODAY ? 'ว่าง · วันนี้อยู่ในช่วงต้องจองล่วงหน้า จึงยังกดจองไม่ได้' : 'ผ่านมาแล้ว') : 'วันหยุด'}</span>`) + '</div>' +
+        (d.list.length ? '<div class="space-y-1 text-sm">' + d.list.map(b => `<div class="flex flex-wrap gap-2 items-center"><span class="st st-${esc(b.status)}">${esc(b.status)}</span>${b.dateEnd && b.dateEnd !== b.date ? '<b>' + esc(thD(b.date)) + ' – ' + esc(thD(b.dateEnd)) + '</b> ' : ''}<b>${esc(b.start)}–${esc(b.end)} น.</b> ${num(b.count)} อัน · ${esc(b.place)} · ${esc(b.topics)}</div>`).join('') + '</div>' : '<div class="text-sm text-slate-500">ยังไม่มีการจอง</div>') + '</div>';
+}
+function bookOn(date) { go('book'); $('fDate').value = date; dateChange(); if (wz > 1) wzGo(2); else msg('เลือกวันที่ ' + thD(date) + ' ให้แล้ว\nกรอกข้อมูลผู้ยืมต่อได้เลย', true); }
+
+/* ---------- ตรวจสอบ ---------- */
+function stepper(b) {
+    const steps = ['รออนุมัติ', 'อนุมัติ', 'ส่งมอบแล้ว', 'คืนแล้ว'], k = steps.indexOf(b.status);
+    if (k === -1) return `<div class="text-sm text-slate-500"><i class="fas fa-ban mr-1"></i>${esc(b.status)}</div>`;
+    return '<div class="flex items-center gap-1 text-xs">' + steps.map((s, i) => `<div class="flex-1 text-center"><div class="h-1.5 rounded ${i <= k ? 'bg-violet-600' : 'bg-slate-200'} mb-1"></div><span class="${i <= k ? 'text-violet-700 font-bold' : 'text-slate-400'}">${s}</span></div>`).join('') + '</div>';
+}
+const trk = { token: '', email: '' };
+const trkEmail = () => { const em = $('tEmail').value.trim().toLowerCase(); return em.includes('@') ? em : em + '@mahidol.ac.th'; };
+function reqOtp() {
+    const em = trkEmail();
+    call('requestTrackOtp', [em], () => { trk.email = em; trk.token = ''; $('trackOut').innerHTML = ''; $('tOtpWrap').classList.remove('hidden-v'); $('tOtp').value = ''; msg('ส่งรหัส OTP 6 หลักไปที่ ' + em + ' แล้ว\nรหัสใช้ได้ภายใน 10 นาที', true); setTimeout(() => $('tOtp').focus(), 50); });
+}
+function verOtp() {
+    call('verifyTrackOtp', [trk.email || trkEmail(), $('tOtp').value.trim()], r => { trk.token = r.token; $('tOtpWrap').classList.add('hidden-v'); renderTrack(r.bookings); });
+}
+function doTrack() { call('trackList', [trk.token], renderTrack); }
+function renderTrack(list) {
+    $('trackOut').innerHTML = list.map(b => `<div class="p-4 rounded-xl border mb-3"><div class="flex flex-wrap justify-between gap-2 mb-2"><div><div class="font-bold text-violet-800">${esc(b.course)}</div><div class="text-xs text-slate-500">ส่งเมื่อ ${esc(b.created)}</div></div><span class="st st-${esc(b.status)}">${esc(b.status)}</span></div>
+            ${stepper(b)}
+            <div class="grid md:grid-cols-2 gap-1 text-sm mt-3"><div>📅 ${esc(b.dateTh)} เวลา ${esc(b.start)}–${esc(b.end)} น.</div><div>🥽 ${esc(b.count)} อัน · ผู้เข้าร่วม ${esc(b.participants)} คน</div><div>📍 ${esc(b.place)} · ${esc(b.room)}</div><div>🎯 ${esc(b.purpose)}: ${esc(b.course)}</div><div class="md:col-span-2">🎮 ${esc(b.topics)}</div></div>
+            ${b.note ? `<div class="mt-2 p-2 rounded-lg bg-amber-50 text-amber-900 text-sm">📝 ${esc(b.note)}</div>` : ''}
+            ${['รออนุมัติ', 'อนุมัติ'].includes(b.status) ? `<div class="text-right mt-3"><button class="btn btn-g text-red-600 text-sm" onclick="myCancel(${jsa(b.ref)})"><i class="fas fa-ban mr-1"></i>ยกเลิกการจองนี้</button></div>` : ''}</div>`).join('');
+}
+function myCancel(ref) {
+    actModal('ยกเลิกการจองนี้', '<label class="lbl">เหตุผล (ถ้ามี)</label><textarea id="xNote" class="inp" rows="3"></textarea>', () => {
+        call('cancelMyBooking', [trk.token, ref, $('xNote').value.trim()], () => { hide('mAct'); msg('ยกเลิกการจองแล้ว', true); doTrack(); });
+    });
+}
+
+/* ---------- Admin ---------- */
+const adm = { token: '', user: '', name: '', rows: [], admins: [], chip: 'รออนุมัติ' };
+function adLogin() {
+    call('adminLogin', [$('aUser').value.trim(), $('aPass').value], r => {
+        if (!r) return msg('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+        Object.assign(adm, r); try { sessionStorage.setItem('vrAdm', JSON.stringify(r)); } catch (x) {}
+        $('aPass').value = ''; $('adWho').textContent = r.name + ' (' + r.user + ')';
+        $('adLogin').classList.add('hidden-v'); $('adMain').classList.remove('hidden-v'); adLoad();
+    });
+}
+function adLogout() { if (dsh.admin) { dsh.token = ''; dsh.admin = false; } adm.token = ''; try { sessionStorage.removeItem('vrAdm'); } catch (x) {} $('adMain').classList.add('hidden-v'); $('adLogin').classList.remove('hidden-v'); }
+function adLoad() { call('adminList', [adm.token], r => { adm.rows = r.rows; adm.admins = r.admins; adRender(); }); }
+const CHIPS = [['รออนุมัติ', 'รออนุมัติ'], ['อนุมัติ', 'อนุมัติ (รอส่งมอบ)'], ['ส่งมอบแล้ว', 'ส่งมอบแล้ว (รอคืน)'], ['คืนแล้ว', 'คืนแล้ว'], ['off', 'ยกเลิก / ไม่อนุมัติ'], ['', 'ทั้งหมด']];
+const inChip = (b, c) => !c || (c === 'off' ? ['ยกเลิก', 'ไม่อนุมัติ'].includes(b.status) : b.status === c);
+function adRender() {
+    $('adChips').innerHTML = CHIPS.map(([k, l]) => `<button class="chip ${adm.chip === k ? 'on' : ''}" onclick="adm.chip=${jsa(k)};adRender()">${l} <span class="opacity-70">${adm.rows.filter(b => inChip(b, k)).length}</span></button>`).join('');
+    const q = $('adQ').value.trim().toLowerCase(), w = $('adWhen').value;
+    const list = adm.rows.filter(b => inChip(b, adm.chip) && (!w || (w === 'today' ? b.today : w === 'past' ? b.past : !b.past)) &&
+        (!q || [b.ref, b.name, b.email, b.course, b.room, b.place, b.org, b.offPlace].join(' ').toLowerCase().includes(q)));
+    const name = u => (adm.admins.find(a => a.user === u) || {}).name || u;
+    $('adBody').innerHTML = list.length ? list.map(b => {
+        const acts = [];
+        if (b.status === 'รออนุมัติ') acts.push(`<button class="btn btn-p text-xs" onclick="adAct(${jsa(b.ref)},'approve')">อนุมัติ</button>`, `<button class="btn btn-g text-xs" onclick="adAct(${jsa(b.ref)},'reject')">ไม่อนุมัติ</button>`);
+        if (b.status === 'อนุมัติ') acts.push(`<button class="btn btn-p text-xs" onclick="adAct(${jsa(b.ref)},'handover')"><i class="fas fa-box"></i> ส่งมอบแว่น</button>`);
+        if (b.status === 'ส่งมอบแล้ว') acts.push(`<button class="btn btn-p text-xs" onclick="adAct(${jsa(b.ref)},'return')"><i class="fas fa-rotate-left"></i> รับคืน</button>`);
+        if (['รออนุมัติ', 'อนุมัติ'].includes(b.status)) acts.push(`<button class="btn btn-g text-xs text-red-600" onclick="adAct(${jsa(b.ref)},'cancel')" title="ยกเลิก"><i class="fas fa-ban"></i></button>`);
+        acts.push(`<button class="btn btn-g text-xs" onclick="adDetail(${jsa(b.ref)})" title="รายละเอียด"><i class="fas fa-eye"></i></button>`);
+        return `<tr class="border-t ${b.today ? 'bg-violet-50/60' : ''}"><td class="p-3 whitespace-nowrap"><b>${esc(b.dateTh)}</b><div class="text-xs text-slate-500">${esc(b.start)}–${esc(b.end)} น.</div><div class="text-xs text-slate-400">${esc(b.ref)}</div></td>
+            <td class="p-3"><div class="font-semibold">${esc(b.name)}</div><div class="text-xs text-slate-500">${esc(b.email)} · ${esc(b.phone)}</div></td>
+            <td class="p-3"><div>${esc(b.course)}</div><div class="text-xs text-violet-700">${esc(b.purpose)}${b.level ? ' · ' + esc(b.level) : ''}</div></td>
+            <td class="p-3 whitespace-nowrap"><div>🥽 ${esc(b.count)} อัน · 👥 ${esc(b.participants)}</div><div class="text-xs text-slate-500">${esc(b.place)}${b.room ? ' · ' + esc(b.room) : ''}</div>${b.offsite === 'ใช่' ? `<div class="text-xs text-red-700 font-semibold">🚚 นอกสถานที่: ${esc(b.offPlace)}</div>` : ''}${b.who === 'ภายนอก' ? `<div class="text-xs text-red-700 font-semibold">🏢 ภายนอก: ${esc(b.org)}</div>` : ''}${b.alloc && b.alloc.includes(',') ? `<div class="text-xs text-amber-700">🚚 ${esc(b.alloc)}</div>` : ''}</td>
+            <td class="p-3"><span class="st st-${esc(b.status)}">${esc(b.status)}</span>${b.overdue ? '<div class="text-xs text-red-600 font-semibold mt-1">⏰ เกินกำหนดคืน</div>' : ''}${b.assignee ? `<div class="text-xs text-slate-500 mt-1">ผู้ดูแล: ${esc(name(b.assignee))}</div>` : ''}${b.condition && b.condition !== 'ปกติ' ? `<div class="text-xs text-red-600 mt-1">⚠️ ${esc(b.condition)}</div>` : ''}</td>
+            <td class="p-3"><div class="flex flex-wrap justify-end gap-1">${acts.join('')}</div></td></tr>`;
+    }).join('') : '<tr><td colspan="6" class="p-8 text-center text-slate-400">ไม่มีรายการ</td></tr>';
+}
+function adTestNotify() {
+    call('adminTestNotify', [adm.token], r => msg('ผลการทดสอบแจ้งเตือน\n\n' + r.map(x => (x.ok ? '✅ ' : x.skipped ? '⚪ ' : '❌ ') + x.channel + ': ' + x.detail).join('\n'), r.some(x => x.ok) && !r.some(x => !x.ok && !x.skipped)));
+}
+function actModal(title, body, onOk) { $('mActT').textContent = title; $('mActB').innerHTML = body; $('mActOk').onclick = onOk; show('mAct'); }
+function adAct(ref, act) {
+    const b = adm.rows.find(x => x.ref === ref);
+    const head = `<div class="text-sm text-slate-600 mb-3">${esc(b.name)} · ${esc(b.dateTh)} ${esc(b.start)}–${esc(b.end)} น. · ${esc(b.count)} อัน</div>`;
+    const note = (lbl, req) => `<label class="lbl">${lbl} ${req ? '<span class="req">*</span>' : ''}</label><textarea id="xNote" class="inp" rows="3"></textarea>`;
+    const run = p => call('adminAction', [adm.token, ref, act, p], () => { hide('mAct'); adLoad(); });
+    if (act === 'approve') actModal('อนุมัติการจอง', head + note('หมายเหตุถึงผู้จอง (ถ้ามี) — ส่งทางอีเมล'), () => run({ note: $('xNote').value }));
+    if (act === 'reject') actModal('ไม่อนุมัติการจอง', head + note('เหตุผล (แจ้งผู้จองทางอีเมล)', 1), () => run({ note: $('xNote').value }));
+    if (act === 'cancel') actModal('ยกเลิกการจอง', head + note('เหตุผล (แจ้งผู้จองทางอีเมล)', 1), () => run({ note: $('xNote').value }));
+    if (act === 'handover') actModal('บันทึกส่งมอบแว่น', head + `<label class="lbl">จำนวนแว่นที่ส่งมอบ <span class="req">*</span></label><input id="xCount" type="number" class="inp" value="${esc(b.count)}" min="1">` +
+        ((b.who === 'ภายนอก' || b.offsite === 'ใช่') ? `<label class="lbl mt-3">เลขหนังสือ / หลักฐานที่ได้รับ <span class="req">*</span></label><input id="xDoc" class="inp" value="${esc(b.docNo || '')}" placeholder="เช่น ที่ ศธ 0xxx/xxx ลงวันที่ ... / สำเนาบัตร">` : ''),
+        () => run({ count: $('xCount').value, docNo: $('xDoc') ? $('xDoc').value : '' }));
+    if (act === 'return') actModal('บันทึกรับคืนแว่น', head + `<div class="grid grid-cols-2 gap-3 mb-3"><div><label class="lbl">จำนวนที่รับคืน <span class="req">*</span></label><input id="xCount" type="number" class="inp" value="${esc(b.outCount || b.count)}" min="0"></div>
+        <div><label class="lbl">สภาพหลังใช้ <span class="req">*</span></label><select id="xCond" class="inp"><option>ปกติ</option><option>ชำรุดบางส่วน</option><option>สูญหายบางส่วน</option></select></div>
+        <div><label class="lbl">จำนวนที่ชำรุด/สูญหาย</label><input id="xDmg" type="number" class="inp" value="0" min="0"></div></div>` + note('บันทึกการคืน (บังคับเมื่อพบความเสียหาย)'),
+        () => run({ count: $('xCount').value, condition: $('xCond').value, damaged: $('xDmg').value, note: $('xNote').value }));
+}
+function adDetail(ref) {
+    const b = adm.rows.find(x => x.ref === ref);
+    const row = (k, v) => v ? `<div class="flex gap-2"><span class="w-32 shrink-0 text-slate-500">${k}</span><span>${esc(v)}</span></div>` : '';
+    actModal('รายละเอียด ' + ref, `<div class="space-y-1 text-sm max-h-[60vh] overflow-y-auto">${row('ผู้จอง', b.name)}${row('อีเมล / โทร', b.email + ' · ' + b.phone)}${row('ประเภท', b.purpose)}${row('รายวิชา/กิจกรรม', b.course)}${row('ระดับ', b.level)}
+        ${row('วันที่ใช้', b.dateTh + ' ' + b.start + '–' + b.end + ' น.')}${row('ประเภทผู้ยืม', b.who === 'ภายนอก' ? 'ภายนอก · ' + b.org : '')}${safeUrl(b.letterUrl) ? `<div class="flex gap-2"><span class="w-32 shrink-0 text-slate-500">หนังสือขอยืม</span><a class="text-orange-700 font-semibold underline" href="${esc(safeUrl(b.letterUrl))}" target="_blank" rel="noopener noreferrer">เปิดไฟล์ PDF</a></div>` : ''}${row('สถานที่ / ห้อง', b.place + (b.room ? ' · ' + b.room : ''))}${row('นำออกนอกสถานที่', b.offsite === 'ใช่' ? b.offPlace + ' · ผู้รับผิดชอบ ' + b.resp + ' ' + b.respPhone : '')}${row('ยืนยันรับผิดชอบ', b.liab)}${row('เลขหนังสือ/หลักฐาน', b.docNo)}${row('แว่น / จัดสรร', b.count + ' อัน · ' + b.alloc)}${row('เรื่อง', b.topics)}${row('ผู้เข้าร่วม', b.participants + ' คน')}
+        ${row('รายละเอียดเพิ่มเติม', b.extra)}${row('หมายเหตุ', b.note)}${row('ส่งมอบ', b.outAt ? b.outAt + ' · ' + b.outCount + ' อัน · ' + b.outBy : '')}${row('รับคืน', b.backAt ? b.backAt + ' · ' + b.backCount + ' อัน · ' + b.backBy : '')}
+        ${row('สภาพหลังใช้', b.condition ? b.condition + (Number(b.damaged) ? ' (' + b.damaged + ' อัน)' : '') : '')}${row('บันทึกการคืน', b.backNote)}
+        <div class="pt-3"><label class="lbl">ผู้ดูแล</label><select id="xUser" class="inp">${'<option value="">-- ยังไม่มอบหมาย --</option>' + adm.admins.map(a => `<option value="${esc(a.user)}" ${a.user === b.assignee ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></div></div>`,
+        () => { const u = $('xUser').value; if (u === (b.assignee || '')) return hide('mAct'); call('adminAction', [adm.token, ref, 'assign', { user: u }], () => { hide('mAct'); adLoad(); }); });
+}
+let SET = null;
+function setOpen() { call('adminGetSettings', [adm.token], r => { SET = r; setRender(); show('mAct'); }); }
+function setRender() {
+    $('mActT').textContent = 'ตั้งค่าแว่น VR';
+    $('mActB').innerHTML = `<div class="text-sm font-bold mb-2">คลังแว่นแยกวิทยาเขต</div><div class="space-y-2 mb-2">${SET.sites.map((s, i) => `<div class="grid grid-cols-12 gap-2"><input class="inp col-span-6" value="${esc(s.name)}" oninput="SET.sites[${i}].name=this.value" placeholder="วิทยาเขต"><input type="number" class="inp col-span-2" value="${num(s.total)}" oninput="SET.sites[${i}].total=this.value" title="ทั้งหมด"><input type="number" class="inp col-span-3" value="${num(s.broken)}" oninput="SET.sites[${i}].broken=this.value" title="ไม่พร้อมใช้"><button class="text-red-500" onclick="SET.sites.splice(${i},1);setRender()"><i class="fas fa-trash"></i></button></div>`).join('')}</div>
+        <div class="text-xs text-slate-500 mb-2">ช่อง: ชื่อวิทยาเขต · จำนวนทั้งหมด · ไม่พร้อมใช้งาน (ชำรุด/ซ่อม)</div><button class="btn btn-g text-xs mb-4" onclick="SET.sites.push({name:'',total:0,broken:0});setRender()">+ เพิ่มวิทยาเขต</button>
+        <div class="text-sm font-bold mb-2">เรื่อง (โปรแกรม VR) — บรรทัดละ 1 เรื่อง</div><textarea id="xTopics" class="inp" rows="4">${esc(SET.topics.join('\n'))}</textarea>`;
+    $('mActOk').onclick = () => { SET.topics = $('xTopics').value.split('\n'); call('adminSaveSettings', [adm.token, SET], () => { hide('mAct'); msg('บันทึกการตั้งค่าแล้ว', true); loadInfo(); }); };
+}
+function pwOpen() {
+    actModal('เปลี่ยนรหัสผ่าน', '<label class="lbl">รหัสผ่านเดิม</label><input id="xOld" type="password" class="inp mb-3"><label class="lbl">รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)</label><input id="xNew" type="password" class="inp">',
+        () => call('adminChangePassword', [adm.token, $('xOld').value, $('xNew').value], () => { hide('mAct'); msg('เปลี่ยนรหัสผ่านแล้ว', true); }));
+}
+
+/* ---------- แดชบอร์ดผู้บริหาร ---------- */
+const dsh = { token: '', name: '', admin: false, charts: {} };
+const PAL = ['#f97316', '#0ea5e9', '#22c55e', '#facc15', '#ef4444', '#ec4899', '#14b8a6', '#64748b', '#a855f7', '#84cc16'];
+const ST_COLOR = { 'รออนุมัติ': '#f59e0b', 'อนุมัติ': '#3b82f6', 'ส่งมอบแล้ว': '#8b5cf6', 'คืนแล้ว': '#22c55e', 'ไม่อนุมัติ': '#94a3b8', 'ยกเลิก': '#cbd5e1' };
+function dOpen() {
+    if (!dsh.token && adm.token) Object.assign(dsh, { token: adm.token, name: adm.name, admin: true });
+    if (!dsh.token) { try { const e = JSON.parse(sessionStorage.getItem('vrExec') || 'null'); if (e) Object.assign(dsh, { token: e.token, name: e.name }); } catch (x) {} }
+    $('dLogin').classList.toggle('hidden-v', !!dsh.token); $('dMain').classList.toggle('hidden-v', !dsh.token);
+    $('dOut').classList.toggle('hidden-v', dsh.admin);
+    if (dsh.token) { $('dWho').textContent = dsh.name + (dsh.admin ? ' (Admin)' : ''); dLoad(); }
+}
+function exLogin() {
+    call('execLogin', [$('eUser').value.trim(), $('ePass').value], r => {
+        if (!r) return msg('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+        Object.assign(dsh, { token: r.token, name: r.name, admin: false }); $('ePass').value = '';
+        try { sessionStorage.setItem('vrExec', JSON.stringify({ token: r.token, name: r.name })); } catch (x) {}
+        dOpen();
+    });
+}
+function exLogout() { dsh.token = ''; try { sessionStorage.removeItem('vrExec'); } catch (x) {} dOpen(); }
+function dChart(id, type, labels, data, opt) {
+    if (dsh.charts[id]) dsh.charts[id].destroy();
+    if (typeof Chart === 'undefined') return;
+    const colors = opt && opt.colors ? opt.colors : (type === 'bar' || type === 'line' ? PAL[0] : PAL);
+    dsh.charts[id] = new Chart($(id), { type: type, data: { labels: labels, datasets: (opt && opt.sets) || [{ data: data, backgroundColor: colors, borderColor: type === 'line' ? PAL[0] : '#fff', borderWidth: type === 'line' ? 2 : 1, tension: .3, fill: false }] },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: opt && opt.h ? 'y' : 'x', plugins: { legend: { display: type === 'doughnut' || !!(opt && opt.sets), position: 'bottom', labels: { font: { family: 'Kanit' } } } },
+            scales: type === 'doughnut' ? {} : { x: { ticks: { font: { family: 'Kanit' }, precision: 0 }, beginAtZero: true }, y: { ticks: { font: { family: 'Kanit' }, precision: 0 }, beginAtZero: true } } } });
+}
+function dLoad() {
+    call('getDashboard', [dsh.token, $('dFrom').value, $('dTo').value], r => {
+        $('dAt').textContent = new Date().toLocaleString('th-TH');
+        const k = r.kpi, card = (v, l, ic, cls) => `<div class="kpi"><div class="flex items-center justify-between"><div class="v ${cls || ''}">${esc(v)}</div><i class="fas ${ic} text-violet-300 text-xl"></i></div><div class="l">${l}</div></div>`;
+        $('dKpi').innerHTML = card(k.active, 'การจองที่ใช้งาน (ไม่รวมยกเลิก)', 'fa-calendar-check') + card(k.participants.toLocaleString(), 'ผู้เข้าร่วมรวม (คน)', 'fa-users') +
+            card(k.glasses.toLocaleString(), 'จำนวนแว่นที่จองรวม (อัน)', 'fa-vr-cardboard') + card(k.hours, 'ชั่วโมงการใช้รวม', 'fa-clock') +
+            card(k.utilPct + '%', 'สัดส่วนแว่นที่ใช้ต่อครั้ง (เฉลี่ย)', 'fa-gauge') + card(k.waiting, 'รออนุมัติ', 'fa-hourglass-half', k.waiting ? 'text-amber-600' : '') +
+            card(k.out, 'ส่งมอบแล้ว รอคืน', 'fa-box-open') + card(k.issues ? k.issues + ' ครั้ง / ' + k.damaged + ' อัน' : '0', 'ชำรุด/สูญหายหลังใช้', 'fa-screwdriver-wrench', k.issues ? 'text-red-600' : '');
+        const ymTh = ym => { const [y, m] = ym.split('-'); return TH_M[Number(m) - 1].slice(0, 3) + ' ' + String(Number(y) + 543).slice(2); };
+        dChart('cMonth', 'bar', r.months.map(x => ymTh(x.ym)), null, { sets: [{ label: 'จำนวนการจอง', data: r.months.map(x => x.req), backgroundColor: '#f97316' }, { label: 'ผู้เข้าร่วม (÷10)', data: r.months.map(x => Math.round(x.participants / 10)), backgroundColor: '#fdba74' }] });
+        dChart('cStatus', 'doughnut', r.status.map(x => x.name), r.status.map(x => x.n), { colors: r.status.map(x => ST_COLOR[x.name] || '#94a3b8') });
+        dChart('cPurpose', 'doughnut', r.purpose.map(x => x.name), r.purpose.map(x => x.n));
+        dChart('cTopic', 'bar', r.topics.map(x => x.name), r.topics.map(x => x.n), { h: 1 });
+        dChart('cPlace', 'bar', r.places.map(x => x.name), r.places.map(x => x.n), { h: 1, colors: '#0ea5e9' });
+        dChart('cWeek', 'bar', ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], r.weekdays, { colors: '#22c55e' });
+        $('dStock').innerHTML = `<div class="mb-2">พร้อมใช้ <b class="text-violet-700">${num(r.stock.ready)}</b> / ทั้งหมด ${num(r.stock.total)} อัน · ไม่พร้อมใช้งาน ${num(r.stock.broken)} อัน</div>` +
+            r.stock.sites.map(s => `<div class="mb-1"><div class="flex justify-between"><span>${esc(s.name)}</span><span>${num(s.ready)}/${num(s.total)}</span></div><div class="h-2 rounded bg-slate-100"><div class="h-2 rounded bg-violet-500" style="width:${num(s.total) ? Math.round(num(s.ready) / num(s.total) * 100) : 0}%"></div></div></div>`).join('');
+        const max = r.courses.length ? r.courses[0].n : 1;
+        $('dCourse').innerHTML = r.courses.length ? r.courses.map(x => `<div class="mb-1"><div class="flex justify-between gap-2"><span class="truncate">${esc(x.name)}</span><b>${num(x.n)}</b></div><div class="h-1.5 rounded bg-slate-100"><div class="h-1.5 rounded bg-sky-500" style="width:${Math.round(num(x.n) / (num(max) || 1) * 100)}%"></div></div></div>`).join('') : '<span class="text-slate-400">ไม่มีข้อมูล</span>';
+        $('dUp').innerHTML = r.upcoming.length ? '<table class="w-full"><thead class="text-slate-500 text-left"><tr><th class="py-1 pr-2">วันที่</th><th class="pr-2">เวลา</th><th class="pr-2">แว่น</th><th class="pr-2">สถานที่ / ห้อง</th><th class="pr-2">รายวิชา / กิจกรรม</th><th>สถานะ</th></tr></thead><tbody>' +
+            r.upcoming.map(x => `<tr class="border-t"><td class="py-1 pr-2 whitespace-nowrap">${esc(x.date)}</td><td class="pr-2 whitespace-nowrap">${esc(x.start)}–${esc(x.end)}</td><td class="pr-2">${esc(x.count)}</td><td class="pr-2">${esc(x.place)} · ${esc(x.room)}</td><td class="pr-2">${esc(x.course)}</td><td><span class="st st-${esc(x.status)}">${esc(x.status)}</span></td></tr>`).join('') + '</tbody></table>' : '<span class="text-slate-400">ไม่มีการจองที่กำลังจะถึง</span>';
+        $('dOver').innerHTML = r.overdue.length ? r.overdue.map(x => `<div class="border-t py-1">${esc(x.date)} · ${esc(x.name)} · ${esc(x.count)} อัน · ${esc(x.phone)} <span class="text-xs text-slate-400">${esc(x.ref)}</span></div>`).join('') : '<span class="text-green-700"><i class="fas fa-check mr-1"></i>คืนครบทุกรายการ</span>';
+        $('dIssue').innerHTML = r.issues.length ? r.issues.map(x => `<div class="border-t py-1">${esc(x.date)} · ${esc(x.name)} · <b class="text-red-600">${esc(x.condition)} ${esc(x.damaged || '')}</b> ${x.note ? '· ' + esc(x.note) : ''}</div>`).join('') : '<span class="text-green-700"><i class="fas fa-check mr-1"></i>ไม่มีรายการ</span>';
+    });
+}
+
+/* ---------- เริ่มต้น ---------- */
+wzDraw();
+['fDate', 'fDateEnd'].forEach(id => thDateInit(id, 'work')); ['dFrom', 'dTo'].forEach(id => thDateInit(id, 'any'));
+(function init() {
+    try { const b = JSON.parse(localStorage.getItem('vrBooker') || 'null'); if (b) { $('fName').value = b.n || ''; $('fEmail').value = b.e || ''; $('fPhone').value = b.p || ''; } } catch (x) {}
+    try { const a = JSON.parse(sessionStorage.getItem('vrAdm') || 'null'); if (a && a.token) { Object.assign(adm, a); $('adWho').textContent = a.name + ' (' + a.user + ')'; $('adLogin').classList.add('hidden-v'); $('adMain').classList.remove('hidden-v'); } } catch (x) {}
+    const ref = new URLSearchParams(location.search).get('ref');
+    if (ref) { go('track'); try { history.replaceState(null, '', location.pathname); } catch (x) {} }
+    loadInfo();
+    setTimeout(calPrefetch, 300);
+})();
+</script>
+<script>if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>
