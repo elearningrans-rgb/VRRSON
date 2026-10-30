@@ -268,6 +268,15 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
 .appmain > footer.appfoot { margin-top: auto !important; }
 .appmain > section { width: 100%; margin-bottom: 40px; }
 @media (min-width: 1024px) { .appmain { max-width: none; } .appmain > section { max-width: 1400px; } .appfoot { margin-left: -40px !important; margin-right: -40px !important; margin-bottom: -48px !important; } .appmain > section + footer, .appmain > footer { position: relative; } }
+
+/* ===== รอบ 10: ฟุตเตอร์มือถือพอดี ===== */
+@media (max-width: 1023px) {
+  .appmain { padding-bottom: 0 !important; min-height: 0 !important; }
+  .appmain > section { margin-bottom: 24px; }
+  .appfoot { margin: 0 -16px !important; }
+  .af-in { padding: 18px 20px calc(84px + env(safe-area-inset-bottom)) !important; font-size: .76rem; line-height: 1.55; }
+  .af-cc { margin-top: 8px; padding-top: 8px; font-size: .7rem; }
+}
 @media print { .sidebar, .topbar, .botnav { display: none !important; } .appmain { margin: 0; padding: 0; } }
 </style>
 </head>
