@@ -115,7 +115,7 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
 .inp:focus { border-color: #EA580C; box-shadow: 0 0 0 3px rgba(234, 88, 12, .18); }
 .opt { border: 1.5px solid #E7E5F2; border-radius: 14px; min-height: 48px; }
 .btn { border-radius: 16px; min-height: 48px; padding: .7rem 1.4rem; }
-.btn-p { background: #EA580C; box-shadow: none; } .btn-p:hover { background: #C2410C; }
+.btn-p { background: #EA580C; box-shadow: none; } .btn-p:hover { background: #C2410C; } .btn-p:disabled { background: #D6D3D1; cursor: not-allowed; }
 .btn-g { background: #fff; border: 1.5px solid #E7E5F2; color: #33354A; } .btn-g:hover { background: #F1F0F7; }
 .text-navy { color: #0B1A8C; }
 .tile { display: flex; align-items: center; gap: .9rem; padding: 1rem; border-radius: 20px; background: #fff; border: 1.5px solid #E7E5F2; cursor: pointer; min-height: 84px; position: relative; flex: 1 1 15rem; }
@@ -277,6 +277,25 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
   .af-in { padding: 18px 20px calc(84px + env(safe-area-inset-bottom)) !important; font-size: .76rem; line-height: 1.55; }
   .af-cc { margin-top: 8px; padding-top: 8px; font-size: .7rem; }
 }
+
+/* ===== รอบ 11: ปุ่มขอเร่งด่วนชัดเจน ===== */
+.urg { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px dashed #F3B48A; border-radius: 16px; background: #fff; cursor: pointer; position: relative; transition: background .15s, border-color .15s; }
+.urg:hover { background: #FFF4EC; border-color: #EA580C; }
+.urg input { position: absolute; opacity: 0; pointer-events: none; }
+.urg-ic { width: 44px; height: 44px; border-radius: 14px; background: #FFF4EC; color: #EA580C; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex: none; }
+.urg-tx { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.4; }
+.urg-tx b { font-size: .95rem; color: #14152B; } .urg-tx small { font-size: .78rem; color: #9A3412; font-weight: 500; }
+.urg-on { display: none; }
+.urg-sw { width: 50px; height: 28px; border-radius: 99px; background: #D6D3D1; position: relative; flex: none; transition: background .15s; }
+.urg-sw span { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .15s; }
+.urg:has(input:checked) { border-style: solid; border-color: #DC2626; background: #FEF2F2; }
+.urg:has(input:checked) .urg-ic { background: #DC2626; color: #fff; }
+.urg:has(input:checked) .urg-sw { background: #DC2626; } .urg:has(input:checked) .urg-sw span { left: 25px; }
+.urg:has(input:checked) .urg-off { display: none; } .urg:has(input:checked) .urg-on { display: block; color: #B91C1C; font-weight: 700; }
+.urg:has(input:focus-visible) { outline: 3px solid #0B1A8C; outline-offset: 2px; }
+.urg-cond { border: 2px solid #FCA5A5; background: #FEF2F2; color: #7F1D1D; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; font-size: .88rem; }
+.urg-ct { font-weight: 700; color: #B91C1C; margin-bottom: 6px; }
+.urg-cond ol { margin: 0; padding-left: 1.3rem; list-style: decimal; } .urg-cond li { margin: 3px 0; } .urg-cond b { color: #991B1B; }
 @media print { .sidebar, .topbar, .botnav { display: none !important; } .appmain { margin: 0; padding: 0; } }
 </style>
 </head>
@@ -310,6 +329,15 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
                 <div><label class="lbl">วันคืนแว่น</label><input type="date" id="fDateEnd" class="inp" onchange="endChange()"><div class="hint">ไม่ระบุ = คืนวันเดียวกัน</div></div>
                 <div id="slotWrap"><label class="lbl">ช่วงเวลา <span class="req">*</span></label><select id="fSlot" class="inp" onchange="slotChange()"><option value="08:00-12:00">ช่วงเช้า 08:00–12:00 น.</option><option value="13:00-16:00">ช่วงบ่าย 13:00–16:00 น.</option><option value="08:00-16:00">ทั้งวัน 08:00–16:00 น.</option><option value="custom">กำหนดเวลาเอง</option></select></div>
             </div>
+            <label class="urg mt-3" id="urgWrap"><input type="checkbox" id="fUrgent" onchange="urgentChange()"><span class="urg-ic"><i class="fas fa-bolt"></i></span><span class="urg-tx"><b>ต้องการใช้เร็วกว่า <span class="js-lead">7</span> วันทำการ? กดเพื่อ “ขอเร่งด่วน”</b><small class="urg-off">มีเงื่อนไขและจำกัดสิทธิ์ · กดเพื่อดูรายละเอียด</small><small class="urg-on">เปิดใช้การขอเร่งด่วนแล้ว · กดอีกครั้งเพื่อยกเลิก</small></span><span class="urg-sw" aria-hidden="true"><span></span></span></label>
+            <div id="urgBox" class="hidden-v mt-3">
+                <div class="urg-cond"><div class="urg-ct"><i class="fas fa-triangle-exclamation"></i> เงื่อนไขการขอเร่งด่วน (โปรดอ่านก่อนส่ง)</div><ol>
+                    <li>เลือกวันรับแว่นได้เร็วสุด <b>ล่วงหน้า 1 วันทำการ</b></li>
+                    <li>ใช้สิทธิ์ได้ <b>ไม่เกิน 3 ครั้งต่ออีเมล ต่อปีการศึกษา</b> (นับตั้งแต่ 1 ส.ค.) ระบบจะแจ้งสิทธิ์คงเหลือในหน้าตรวจทาน</li>
+                    <li>คำขอที่ผู้จองยกเลิกเอง <b>นับเป็น 1 ครั้ง</b> · คำขอที่เจ้าหน้าที่ไม่อนุมัติ ไม่นับ</li>
+                    <li>ต้อง <b>ระบุเหตุผล</b> และ <b>รอเจ้าหน้าที่อนุมัติ</b> ไม่รับประกันว่าจะมีแว่นหรือเตรียมได้ทัน</li>
+                </ol></div>
+                <label class="lbl">เหตุผลที่ขอเร่งด่วน <span class="req">*</span></label><textarea id="fUrgReason" class="inp" rows="2" maxlength="300" placeholder="เช่น ได้รับมอบหมายสอนแทนกะทันหัน / ตารางเรียนเปลี่ยน"></textarea></div>
             <div id="customT" class="hidden-v fgrid2 mt-3"><div><label class="lbl" id="lblStart">เวลาเริ่ม</label><input type="time" id="fStart" class="inp" value="09:00" min="08:00" max="16:00" onchange="checkAvail()"></div><div><label class="lbl" id="lblEnd">เวลาสิ้นสุด</label><input type="time" id="fEnd" class="inp" value="12:00" min="08:00" max="16:00" onchange="checkAvail()"></div></div>
         </section>
         <section class="sec">
@@ -346,8 +374,13 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
             <div><label class="lbl">จำนวนแว่นที่ต้องการ <span class="req">*</span></label><input type="number" id="fCount" class="inp" min="1" max="18" value="10"></div>
             <div><label class="lbl">จำนวนผู้เข้าร่วม <span class="req">*</span></label><input type="number" id="fPpl" class="inp" min="1" value="40"></div>
         </div>
+        <div class="lbl mt-2">บริการเสริมจากเจ้าหน้าที่ <span class="font-normal text-slate-400">(เลือกได้ทั้ง 2 ข้อ)</span></div>
+        <div class="fgrid2 mb-4">
+            <label class="chk"><input type="checkbox" id="fSetup"><span class="chki"><i class="fas fa-screwdriver-wrench"></i></span><span><b>ขอให้ติดตั้งก่อนเริ่มใช้งาน</b><br><small>เจ้าหน้าที่เข้าติดตั้งก่อนเวลาเริ่ม 30 นาที</small></span></label>
+            <label class="chk"><input type="checkbox" id="fSupport"><span class="chki"><i class="fas fa-headset"></i></span><span><b>ขอเจ้าหน้าที่ช่วยระหว่างใช้งาน</b><br><small>อยู่ดูแล/แก้ปัญหาแว่นระหว่างกิจกรรม</small></span></label>
+        </div>
         <label class="lbl">รายละเอียดเพิ่มเติมถึงเจ้าหน้าที่</label>
-        <textarea id="fExtra" class="inp mb-5" rows="3" placeholder="เช่น ต้องการให้เจ้าหน้าที่ติดตั้งก่อนเริ่ม 30 นาที"></textarea>
+        <textarea id="fExtra" class="inp mb-5" rows="3" placeholder="ข้อความอื่น ๆ ถึงเจ้าหน้าที่ (ถ้ามี)"></textarea>
         <h2 class="font-bold text-navy text-lg mb-3 mt-2">ข้อมูลผู้จอง</h2>
 
         <div class="flex flex-wrap gap-2 mb-3">
@@ -367,6 +400,7 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
         <div class="wzfoot"><button class="btn btn-g" onclick="wzGo(2)" aria-label="ย้อนกลับ"><i class="fas fa-arrow-left"></i><span class="bk"> ย้อนกลับ</span></button><button class="btn btn-p" onclick="wzGo(4)">ถัดไป: ตรวจทาน <i class="fas fa-arrow-right"></i></button></div></div>
 <div id="wz4" class="wz hidden-v"><h2>ตรวจทานก่อนส่งคำขอ</h2>
         <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label>เว็บไซต์<input id="fHp" type="text" tabindex="-1" autocomplete="off"></label></div>
+        <div id="urgQuota" class="hidden-v mb-3"></div>
         <div id="wzSum" class="rounded-xl border border-orange-200 bg-orange-50/50 p-4 text-sm space-y-1.5"></div>
         <p class="text-xs text-slate-500 mt-3">เมื่อส่งคำขอแล้ว เจ้าหน้าที่จะตรวจสอบและแจ้งผลทางอีเมล ตรวจสอบสถานะได้ที่เมนู “ตรวจสอบการจอง”</p>
         <div class="wzfoot"><button class="btn btn-g" onclick="wzGo(3)" aria-label="ย้อนกลับ"><i class="fas fa-arrow-left"></i><span class="bk"> ย้อนกลับ</span></button><button class="btn btn-p" onclick="submitBook()"><i class="fas fa-paper-plane"></i> ส่งคำขอจอง</button></div></div>
@@ -549,7 +583,7 @@ function loadInfo() {
     call('getInfo', [], r => {
         INFO = r;
         $('leadTxt').textContent = r.leadDays; $('fDate').min = r.minDate; $('minTxt').textContent = 'จองได้ตั้งแต่ ' + r.minDateTh + ' เป็นต้นไป'; const TM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], md = String(r.minDate).split('-'); $('minHero').textContent = Number(md[2]) + ' ' + TM[Number(md[1]) - 1] + ' ' + String(Number(md[0]) + 543).slice(2); $('heroReady').textContent = r.ready; $('heroTotal').textContent = r.total;
-        $('fCount').max = r.maxCount; $('fDateEnd').min = r.minDate;
+        $('fCount').max = r.maxCount; $('fDateEnd').min = r.minDate; $('urgWrap').classList.toggle('hidden-v', !r.minDateUrgent);
         document.querySelectorAll('.js-maxwd').forEach(e => e.textContent = r.maxWorkdays);
         document.querySelectorAll('.js-lead').forEach(e => e.textContent = r.leadDays); document.querySelectorAll('.js-max').forEach(e => e.textContent = r.maxCount);
         $('stockBox').innerHTML = r.sites.map(s => `<div class="stock"><span class="font-semibold">${esc(s.name)}</span><span><b class="text-2xl" style="color:#0B1A8C">${num(s.ready)}</b> <span style="color:#55586E">/ ${num(s.total)} อัน</span></span></div>`).join('');
@@ -574,6 +608,14 @@ function syncSlot() {
     const m = isMulti();
     $('slotWrap').classList.toggle('hidden-v', m); $('customT').classList.toggle('hidden-v', !(m || $('fSlot').value === 'custom'));
     $('lblStart').textContent = m ? 'เวลารับแว่น (วันที่ใช้)' : 'เวลาเริ่ม'; $('lblEnd').textContent = m ? 'เวลาคืนแว่น (วันที่คืน)' : 'เวลาสิ้นสุด';
+}
+function urgentChange() {
+    const u = $('fUrgent').checked, min = INFO ? (u ? INFO.minDateUrgent : INFO.minDate) : '';
+    $('urgBox').classList.toggle('hidden-v', !u);
+    if (!INFO) return;
+    $('fDate').min = min; $('fDateEnd').min = $('fDate').value || min;
+    $('minTxt').textContent = 'จองได้ตั้งแต่ ' + (u ? INFO.minDateUrgentTh + ' (เร่งด่วน)' : INFO.minDateTh) + ' เป็นต้นไป';
+    if ($('fDate').value && $('fDate').value < min) { $('fDate').value = ''; $('fDateEnd').value = ''; }
 }
 function dateChange() { const a = $('fDate').value; $('fDateEnd').min = a || (INFO ? INFO.minDate : ''); if ($('fDateEnd').value && $('fDateEnd').value < a) $('fDateEnd').value = ''; syncSlot(); checkAvail(); }
 function endChange() { syncSlot(); checkAvail(); }
@@ -682,6 +724,7 @@ function wzCheck(n) {
     if (n === 2) {
         const [s, e] = times();
         if (!$('fDate').value) return bad('กรุณาเลือกวันที่ใช้');
+        if ($('fUrgent').checked && $('fUrgReason').value.trim().length < 5) return bad('กรุณาระบุเหตุผลที่ขอเร่งด่วน');
         if (!s || !e) return bad('กรุณาระบุเวลา');
         if (!isMulti() && s >= e) return bad('เวลาสิ้นสุดต้องหลังเวลาเริ่ม');
         if (!$('fPlace').value) return bad('กรุณาเลือกสถานที่ใช้ / รับ-คืนแว่น');
@@ -701,7 +744,7 @@ function wzGo(n) {
 }
 function wzShow() {
     [1, 2, 3, 4].forEach(i => $('wz' + i).classList.toggle('hidden-v', i !== wz));
-    wzDraw(); if (wz === 4) wzSummary(); navSync();
+    wzDraw(); if (wz === 4) { wzSummary(); urgQuotaShow(); } navSync();
     $('wzBar').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function wzSummary() {
@@ -710,11 +753,29 @@ function wzSummary() {
     const row = (k, v) => v ? `<div class="flex gap-2"><span class="w-36 shrink-0 text-slate-500">${k}</span><span class="font-semibold">${esc(v)}</span></div>` : '';
     $('wzSum').innerHTML = row('ผู้ยืม', $('fName').value.trim() + ' (' + who + ')') + row('อีเมล / โทร', $('fEmail').value.trim() + ($('emSuffix').classList.contains('hidden-v') ? '' : '@mahidol.ac.th') + ' · ' + $('fPhone').value.trim()) +
         row('หน่วยงาน', who === 'ภายนอก' ? $('fOrg').value.trim() : '') + row('หนังสือขอยืม', who === 'ภายนอก' && $('fLetterFile').files[0] ? $('fLetterFile').files[0].name : '') +
-        row('วันที่ใช้ / รับ', thD($('fDate').value)) + row('วันที่คืน', isMulti() ? thD($('fDateEnd').value) : 'วันเดียวกัน') + row(isMulti() ? 'เวลารับ–คืน' : 'เวลา', s + '–' + e + ' น.') +
+        ($('fUrgent').checked && INFO && $('fDate').value < INFO.minDate ? row('⚡ ขอเร่งด่วน', $('fUrgReason').value.trim()) : '') + row('วันที่ใช้ / รับ', thD($('fDate').value)) + row('วันที่คืน', isMulti() ? thD($('fDateEnd').value) : 'วันเดียวกัน') + row(isMulti() ? 'เวลารับ–คืน' : 'เวลา', s + '–' + e + ' น.') +
         row('สถานที่รับ-คืน', place) + (off ? row('นำไปใช้นอกสถานที่', $('fOffPlace').value.trim() + ' · ผู้รับผิดชอบ ' + $('fResp').value.trim() + ' ' + $('fRespPhone').value.trim()) : row('ห้อง', $('fRoom').value.trim())) +
         row('ประเภทการใช้', document.querySelector('input[name=purpose]:checked')?.value) + row('รายวิชา / กิจกรรม', $('fCourse').value.trim()) +
         row('เรื่องที่ใช้', [...document.querySelectorAll('input[name=topic]:checked')].map(x => x.value).join(', ')) +
-        row('จำนวนแว่น', $('fCount').value + ' อัน · ผู้เข้าร่วม ' + $('fPpl').value + ' คน') + row('รายละเอียดเพิ่มเติม', $('fExtra').value.trim());
+        row('จำนวนแว่น', $('fCount').value + ' อัน · ผู้เข้าร่วม ' + $('fPpl').value + ' คน') + (($('fSetup').checked || $('fSupport').checked) ? row('บริการเสริม', [$('fSetup').checked ? 'ติดตั้งก่อนเริ่ม 30 นาที' : '', $('fSupport').checked ? 'เจ้าหน้าที่ช่วยระหว่างใช้งาน' : ''].filter(Boolean).join(' · ')) : '') + row('รายละเอียดเพิ่มเติม', $('fExtra').value.trim());
+}
+/* แสดงสิทธิ์ขอเร่งด่วนคงเหลือในหน้าตรวจทาน */
+function urgQuotaShow() {
+    const box = $('urgQuota'), sendBtn = document.querySelector('#wz4 .btn-p');
+    const urgent = $('fUrgent').checked && INFO && $('fDate').value && $('fDate').value < INFO.minDate;
+    if (sendBtn) sendBtn.disabled = false;
+    if (!urgent) { box.classList.add('hidden-v'); return; }
+    const em = $('fEmail').value.trim(), email = $('emSuffix').classList.contains('hidden-v') || em.includes('@') ? em : em + '@mahidol.ac.th';
+    box.className = 'mb-3 p-3 rounded-xl border text-sm'; box.style.cssText = 'background:#FFF4EC;border-color:#F3B48A;color:#7C2D12';
+    box.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> กำลังตรวจสิทธิ์ขอเร่งด่วน...';
+    google.script.run.withSuccessHandler(q => {
+        const used = num(q.used), max = num(q.max), left = max - used - 1;
+        if (used >= max) {
+            box.style.cssText = 'background:#FEF2F2;border-color:#FCA5A5;color:#991B1B';
+            box.innerHTML = `<b>⚡ ใช้สิทธิ์ขอเร่งด่วนครบ ${max} ครั้งแล้ว</b> ในปีการศึกษา ${num(q.year)} (นับตั้งแต่ ${esc(q.since)})<br>ส่งแบบเร่งด่วนไม่ได้ กรุณาย้อนกลับไปเลือกวันที่ล่วงหน้าอย่างน้อย ${num(INFO.leadDays)} วันทำการ หรือติดต่อเจ้าหน้าที่`;
+            if (sendBtn) sendBtn.disabled = true;
+        } else box.innerHTML = `<b>⚡ ขอเร่งด่วน: ครั้งนี้เป็นครั้งที่ ${used + 1} จาก ${max}</b> ของปีการศึกษา ${num(q.year)}<br>หลังส่งคำขอนี้ จะเหลือสิทธิ์ขอเร่งด่วนอีก <b>${left}</b> ครั้ง (ไม่นับคำขอที่เจ้าหน้าที่ไม่อนุมัติ)`;
+    }).withFailureHandler(() => { box.innerHTML = '⚡ ขอเร่งด่วนได้ไม่เกิน 3 ครั้งต่ออีเมลต่อปีการศึกษา'; }).urgentQuota(email);
 }
 function submitBook() {
     const ext = document.querySelector('input[name=who]:checked').value === 'ภายนอก';
@@ -731,13 +792,13 @@ function submitBookNow(letter) {
         purpose: document.querySelector('input[name=purpose]:checked')?.value || '', course: $('fCourse').value.trim(), level: $('fLevel').value,
         date: $('fDate').value, start: s, end: e, place: $('fPlace').value, placeOther: $('fPlaceOther').value.trim(), room: $('fRoom').value.trim(),
         topics: [...document.querySelectorAll('input[name=topic]:checked')].map(x => x.value), count: $('fCount').value, participants: $('fPpl').value,
-        roomBooked: $('fRoomOk').checked, extra: $('fExtra').value.trim(), hp: ($('fHp') || {}).value || '' };
+        roomBooked: $('fRoomOk').checked, extra: $('fExtra').value.trim(), urgent: $('fUrgent').checked, setup: $('fSetup').checked, support: $('fSupport').checked, urgentReason: $('fUrgReason').value.trim(), hp: ($('fHp') || {}).value || '' };
     if (!em) return msg(ext ? 'กรุณากรอกอีเมล' : 'กรุณากรอกอีเมลมหาวิทยาลัย');
     busy(true, 'กำลังส่งคำขอจอง...');
     call('submitBooking', [data], r => {
         try { localStorage.setItem('vrBooker', JSON.stringify({ n: data.name, e: em, p: data.phone })); } catch (x) {}
         msg(`ส่งคำขอจองเรียบร้อยแล้ว\nวันที่ใช้ ${r.date} เวลา ${r.start}–${r.end} น. จำนวน ${r.count} อัน\n\nระบบส่งอีเมลยืนยันไปที่ ${data.email}\nเจ้าหน้าที่จะแจ้งผลการอนุมัติทางอีเมล`, true);
-        ['fCourse', 'fRoom', 'fExtra', 'fDate', 'fDateEnd', 'fOffPlace', 'fResp', 'fRespPhone'].forEach(id => $(id).value = ''); $('fRoomOk').checked = false; $('fLiab').checked = false; $('fOff').checked = false; $('fLetterFile').value = ''; $('letterInfo').textContent = ''; offChange(); syncSlot(); wz = 4; wzGo(1); $('availBox').innerHTML = '';
+        ['fCourse', 'fRoom', 'fExtra', 'fDate', 'fDateEnd', 'fOffPlace', 'fResp', 'fRespPhone'].forEach(id => $(id).value = ''); $('fRoomOk').checked = false; $('fSetup').checked = false; $('fSupport').checked = false; $('fLiab').checked = false; $('fOff').checked = false; $('fLetterFile').value = ''; $('letterInfo').textContent = ''; offChange(); syncSlot(); wz = 4; wzGo(1); $('availBox').innerHTML = '';
         document.querySelectorAll('input[name=topic]').forEach(x => x.checked = false);
     }, true);
 }
@@ -848,7 +909,7 @@ function adRender() {
             <td class="p-3"><div class="font-semibold">${esc(b.name)}</div><div class="text-xs text-slate-500">${esc(b.email)} · ${esc(b.phone)}</div></td>
             <td class="p-3"><div>${esc(b.course)}</div><div class="text-xs text-violet-700">${esc(b.purpose)}${b.level ? ' · ' + esc(b.level) : ''}</div></td>
             <td class="p-3 whitespace-nowrap"><div>🥽 ${esc(b.count)} อัน · 👥 ${esc(b.participants)}</div><div class="text-xs text-slate-500">${esc(b.place)}${b.room ? ' · ' + esc(b.room) : ''}</div>${b.offsite === 'ใช่' ? `<div class="text-xs text-red-700 font-semibold">🚚 นอกสถานที่: ${esc(b.offPlace)}</div>` : ''}${b.who === 'ภายนอก' ? `<div class="text-xs text-red-700 font-semibold">🏢 ภายนอก: ${esc(b.org)}</div>` : ''}${b.alloc && b.alloc.includes(',') ? `<div class="text-xs text-amber-700">🚚 ${esc(b.alloc)}</div>` : ''}</td>
-            <td class="p-3"><span class="st st-${esc(b.status)}">${esc(b.status)}</span>${b.overdue ? '<div class="text-xs text-red-600 font-semibold mt-1">⏰ เกินกำหนดคืน</div>' : ''}${b.assignee ? `<div class="text-xs text-slate-500 mt-1">ผู้ดูแล: ${esc(name(b.assignee))}</div>` : ''}${b.condition && b.condition !== 'ปกติ' ? `<div class="text-xs text-red-600 mt-1">⚠️ ${esc(b.condition)}</div>` : ''}</td>
+            <td class="p-3"><span class="st st-${esc(b.status)}">${esc(b.status)}</span>${b.overdue ? '<div class="text-xs text-red-600 font-semibold mt-1">⏰ เกินกำหนดคืน</div>' : ''}${String(b.extra || '').indexOf('⚡') === 0 ? '<div class="text-xs font-semibold mt-1" style="color:#C2410C">⚡ ขอเร่งด่วน</div>' : ''}${/🛠️/.test(b.extra || '') ? '<div class="text-xs font-semibold mt-1" style="color:#0B1A8C">🛠️ ติดตั้งก่อนเริ่ม</div>' : ''}${/🙋/.test(b.extra || '') ? '<div class="text-xs font-semibold mt-1" style="color:#0B1A8C">🙋 ขอ support</div>' : ''}${b.assignee ? `<div class="text-xs text-slate-500 mt-1">ผู้ดูแล: ${esc(name(b.assignee))}</div>` : ''}${b.condition && b.condition !== 'ปกติ' ? `<div class="text-xs text-red-600 mt-1">⚠️ ${esc(b.condition)}</div>` : ''}</td>
             <td class="p-3"><div class="flex flex-wrap justify-end gap-1">${acts.join('')}</div></td></tr>`;
     }).join('') : '<tr><td colspan="6" class="p-8 text-center text-slate-400">ไม่มีรายการ</td></tr>';
 }
