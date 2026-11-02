@@ -296,6 +296,15 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
 .urg-cond { border: 2px solid #FCA5A5; background: #FEF2F2; color: #7F1D1D; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; font-size: .88rem; }
 .urg-ct { font-weight: 700; color: #B91C1C; margin-bottom: 6px; }
 .urg-cond ol { margin: 0; padding-left: 1.3rem; list-style: decimal; } .urg-cond li { margin: 3px 0; } .urg-cond b { color: #991B1B; }
+
+/* ===== รอบ 13: วันที่มีการจองแล้ว ===== */
+.upi { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: #F6F5FB; border: 1.5px solid transparent; text-align: left; font: inherit; cursor: pointer; width: 100%; }
+.upi:hover { border-color: #C7CBF5; }
+.upd { width: 52px; flex: none; display: flex; flex-direction: column; align-items: center; background: #fff; border-radius: 12px; padding: 4px 0; line-height: 1.15; }
+.upd b { font-size: 1.25rem; color: #0B1A8C; } .upd small { font-size: .66rem; color: #55586E; }
+.upt { display: flex; flex-direction: column; min-width: 0; line-height: 1.4; }
+.upm { font-weight: 600; font-size: .86rem; color: #14152B; } .ups { font-size: .78rem; color: #55586E; }
+.upg { color: #047857; } .upr { color: #B91C1C; }
 @media print { .sidebar, .topbar, .botnav { display: none !important; } .appmain { margin: 0; padding: 0; } }
 </style>
 </head>
@@ -408,10 +417,10 @@ body { font-family: 'IBM Plex Sans Thai', 'Kanit', sans-serif; background: #F6F5
 </div>
     <aside class="bookside">
         <div class="hero2">
-            <div><div class="text-sm" style="color:#C3C8F2">แว่นพร้อมใช้ขณะนี้</div><div class="hnum"><b id="heroReady">–</b><span> / <span id="heroTotal">–</span> อัน</span></div></div>
+            <div><div class="text-sm" style="color:#C3C8F2">แว่นพร้อมใช้งานในระบบ</div><div class="hnum"><b id="heroReady">–</b><span> / <span id="heroTotal">–</span> อัน</span></div></div>
             <div class="hright"><span class="hbadge">จองได้ตั้งแต่ <span id="minHero">–</span></span><span class="text-xs" style="color:#C3C8F2">ล่วงหน้า <b class="js-lead">7</b> วันทำการ</span></div>
         </div>
-        <div class="card p-5 rulecard"><div class="font-bold text-lg mb-3">แว่นพร้อมใช้</div><div class="grid gap-2 text-sm" id="stockBox"></div></div>
+        <div class="card p-5 hidden-v" id="upCard"><div class="flex items-center justify-between mb-3"><div class="font-bold text-lg">วันที่มีการจองแล้ว</div><a href="javascript:go('cal')" class="text-xs font-semibold" style="color:#EA580C">ดูปฏิทินทั้งหมด ›</a></div><div class="grid gap-2" id="upList"></div><div id="stockBox" class="hidden-v"></div></div>
         <div class="card p-5 text-sm space-y-3 rulecard">
             <div class="font-bold text-lg">กติกาการยืม</div>
             <div class="rule"><i class="fas fa-calendar-check"></i><span>จองล่วงหน้า <b class="js-lead">7</b> วันทำการ</span></div>
@@ -579,22 +588,37 @@ function go(v) {
 
 /* ---------- ฟอร์มจอง ---------- */
 let INFO = null;
+const PUR_DEF = ['การเรียนการสอน', 'อบรม / สาธิต', 'วิจัย', 'กิจกรรมอื่น'];
+window.PSUB = p => /สอน/.test(p) ? 'รายวิชา / ภาคปฏิบัติ' : /อบรม|สาธิต/.test(p) ? 'โครงการ งานบริการวิชาการ' : /วิจัย/.test(p) ? 'เก็บข้อมูล / ทดลอง' : 'ระบุรายละเอียดเอง';
+window.PIC = p => /สอน/.test(p) ? 'fa-book-open' : /อบรม|สาธิต/.test(p) ? 'fa-chalkboard-user' : /วิจัย/.test(p) ? 'fa-flask' : 'fa-ellipsis';
+function purDraw(list) {
+    const PUR = (list && list.length ? list : PUR_DEF).slice(); if (!PUR.includes('วิจัย')) PUR.splice(Math.max(0, PUR.length - 1), 0, 'วิจัย');
+    const box = $('purposeBox'), key = PUR.join('|'); if (box.dataset.k === key) return; box.dataset.k = key;
+    const cur = document.querySelector('input[name=purpose]:checked')?.value, sel = PUR.includes(cur) ? cur : PUR[0];
+    box.innerHTML = PUR.map(p => `<label class="tile"><input type="radio" name="purpose" value="${esc(p)}" ${p === sel ? 'checked' : ''} onchange="purposeChange()" onclick="purposeChange(); setTimeout(() => wzGo(2), 150)"><span class="ic"><i class="fas ${PIC(p)}"></i></span><span><span class="tl">${esc(p)}</span><br><span class="ts">${PSUB(p)}</span></span></label>`).join('');
+}
 function loadInfo() {
-    call('getInfo', [], r => {
+    let c = null; try { c = JSON.parse(localStorage.getItem('vrInfo') || 'null'); } catch (x) {}
+    if (c && c.minDate) { try { infoApply(c); } catch (x) { purDraw(); } } else { purDraw(); purposeChange(); }
+    call('getInfo', [], r => { infoApply(r); try { localStorage.setItem('vrInfo', JSON.stringify(r)); } catch (x) {} }, true);
+}
+function infoApply(r) {
+    {
         INFO = r;
         $('leadTxt').textContent = r.leadDays; $('fDate').min = r.minDate; $('minTxt').textContent = 'จองได้ตั้งแต่ ' + r.minDateTh + ' เป็นต้นไป'; const TM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'], md = String(r.minDate).split('-'); $('minHero').textContent = Number(md[2]) + ' ' + TM[Number(md[1]) - 1] + ' ' + String(Number(md[0]) + 543).slice(2); $('heroReady').textContent = r.ready; $('heroTotal').textContent = r.total;
         $('fCount').max = r.maxCount; $('fDateEnd').min = r.minDate; $('urgWrap').classList.toggle('hidden-v', !r.minDateUrgent);
         document.querySelectorAll('.js-maxwd').forEach(e => e.textContent = r.maxWorkdays);
         document.querySelectorAll('.js-lead').forEach(e => e.textContent = r.leadDays); document.querySelectorAll('.js-max').forEach(e => e.textContent = r.maxCount);
-        $('stockBox').innerHTML = r.sites.map(s => `<div class="stock"><span class="font-semibold">${esc(s.name)}</span><span><b class="text-2xl" style="color:#0B1A8C">${num(s.ready)}</b> <span style="color:#55586E">/ ${num(s.total)} อัน</span></span></div>`).join('');
-        window.PSUB = p => /สอน/.test(p) ? 'รายวิชา / ภาคปฏิบัติ' : /อบรม|สาธิต/.test(p) ? 'โครงการ งานบริการวิชาการ' : /วิจัย/.test(p) ? 'เก็บข้อมูล / ทดลอง' : 'ระบุรายละเอียดเอง';
-        window.PIC = p => /สอน/.test(p) ? 'fa-book-open' : /อบรม|สาธิต/.test(p) ? 'fa-chalkboard-user' : /วิจัย/.test(p) ? 'fa-flask' : 'fa-ellipsis';
-        const PUR = (r.purposes || []).slice(); if (!PUR.includes('วิจัย')) PUR.splice(Math.max(0, PUR.length - 1), 0, 'วิจัย');
-        $('purposeBox').innerHTML = PUR.map((p, i) => `<label class="tile"><input type="radio" name="purpose" value="${esc(p)}" ${i === 0 ? 'checked' : ''} onchange="purposeChange()" onclick="purposeChange(); setTimeout(() => wzGo(2), 150)"><span class="ic"><i class="fas ${PIC(p)}"></i></span><span><span class="tl">${esc(p)}</span><br><span class="ts">${PSUB(p)}</span></span></label>`).join('');
+        const stSites = r.sitesToday && r.sitesToday.length ? r.sitesToday : r.sites.map(s => ({ name: s.name, total: s.total, free: s.ready }));
+        $('stockBox').innerHTML = stSites.map(s => `<div class="stock"><span class="font-semibold">${esc(s.name)}</span><span><b class="text-2xl" style="color:#0B1A8C">${num(s.free)}</b> <span style="color:#55586E">/ ${num(s.total)} อัน</span></span></div>`).join('');
+        purDraw(r.purposes);
+        const tSel = [...document.querySelectorAll('input[name=topic]:checked')].map(e => e.value), pSel = $('fPlace').value;
         $('topicBox').innerHTML = r.topics.map(t => `<label class="opt"><input type="checkbox" name="topic" value="${esc(t)}"> ${esc(t)}</label>`).join('');
         $('fPlace').innerHTML = '<option value="">-- เลือกสถานที่ --</option>' + r.places.map(p => `<option>${esc(p)}</option>`).join('') + '<option>อื่นๆ</option>';
-        purposeChange();
-    }, true);
+        document.querySelectorAll('input[name=topic]').forEach(e => { if (tSel.includes(e.value)) e.checked = true; });
+        if (pSel) $('fPlace').value = pSel;
+        purposeChange(); if ($('fUrgent').checked && r.minDateUrgent) urgentChange();
+    }
 }
 function purposeChange() {
     const p = document.querySelector('input[name=purpose]:checked')?.value;
@@ -812,10 +836,24 @@ const ymAdd = (ym, n) => { const [y, m] = ym.split('-').map(Number); const d = n
 function calFetch(ym, cb) {
     if (CALP[ym]) { if (cb) CALP[ym].push(cb); return; }
     CALP[ym] = cb ? [cb] : [];
-    google.script.run.withSuccessHandler(r => { CALC[ym] = r; const l = CALP[ym]; delete CALP[ym]; l.forEach(f => f(r)); })
+    google.script.run.withSuccessHandler(r => { CALC[ym] = r; try { stripDraw(); } catch (x) {} const l = CALP[ym]; delete CALP[ym]; l.forEach(f => f(r)); })
         .withFailureHandler(e => { const l = CALP[ym]; delete CALP[ym]; if (l.length) msg(String((e && e.message) || e).replace(/^Error:\s*/, '')); })
         .getCalendar(ym);
 }
+function stripDraw() {
+    const card = $('upCard'); if (!card) return;
+    const t = new Date(), out = [], DW = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'], TMS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const dm = s => { const p = s.split('-').map(Number); return p[2] + ' ' + TMS[p[1] - 1]; };
+    for (let i = 0; i < 14 && out.length < 5; i++) {
+        const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        const c = CALC[ds.slice(0, 7)]; if (!c) return; const x = c.days.find(y => y.date === ds); if (!x || !x.list.length) continue;
+        const used = Math.max(0, c.ready - x.free);
+        const tms = x.list.map(b => b.dateEnd && b.dateEnd !== b.date ? `ยืม ${dm(b.date)}–${dm(b.dateEnd)}` : `${esc(b.start)}–${esc(b.end)} น.`).filter((v, k, a) => a.indexOf(v) === k).join(' · ');
+        out.push(`<button type="button" class="upi" onclick="stripPick('${ds}')"><span class="upd"><b>${d.getDate()}</b><small>${DW[d.getDay()]} ${TMS[d.getMonth()]}</small></span><span class="upt"><span class="upm">${tms}</span><span class="ups">จองแล้ว <b>${num(used)}</b> อัน · เหลือว่าง <b class="${x.free <= 0 ? 'upr' : 'upg'}">${num(x.free)}</b> อัน</span></span></button>`);
+    }
+    $('upList').innerHTML = out.join(''); card.classList.toggle('hidden-v', !out.length);
+}
+function stripPick(ds) { calYm = ds.slice(0, 7); go('cal'); if (calData && calData.ym === calYm) calPick(ds); }
 function calPrefetch() { calFetch(calYm); calFetch(ymAdd(calYm, 1)); }
 function calLoad() {
     const [y, m] = calYm.split('-').map(Number), ym = calYm;
