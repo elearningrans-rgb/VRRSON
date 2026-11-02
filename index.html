@@ -836,7 +836,7 @@ const ymAdd = (ym, n) => { const [y, m] = ym.split('-').map(Number); const d = n
 function calFetch(ym, cb) {
     if (CALP[ym]) { if (cb) CALP[ym].push(cb); return; }
     CALP[ym] = cb ? [cb] : [];
-    google.script.run.withSuccessHandler(r => { CALC[ym] = r; try { stripDraw(); } catch (x) {} const l = CALP[ym]; delete CALP[ym]; l.forEach(f => f(r)); })
+    google.script.run.withSuccessHandler(r => { CALC[ym] = r; try { localStorage.setItem('vrCal_' + ym, JSON.stringify(r)); } catch (x) {} try { stripDraw(); } catch (x) {} const l = CALP[ym]; delete CALP[ym]; l.forEach(f => f(r)); })
         .withFailureHandler(e => { const l = CALP[ym]; delete CALP[ym]; if (l.length) msg(String((e && e.message) || e).replace(/^Error:\s*/, '')); })
         .getCalendar(ym);
 }
@@ -854,6 +854,11 @@ function stripDraw() {
     $('upList').innerHTML = out.join(''); card.classList.toggle('hidden-v', !out.length);
 }
 function stripPick(ds) { calYm = ds.slice(0, 7); go('cal'); if (calData && calData.ym === calYm) calPick(ds); }
+function calCacheLoad() {
+    [calYm, ymAdd(calYm, 1)].forEach(ym => { try { const c = JSON.parse(localStorage.getItem('vrCal_' + ym) || 'null'); if (c && c.days && !CALC[ym]) CALC[ym] = c; } catch (x) {} });
+    try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (/^vrCal_/.test(k) && k < 'vrCal_' + ymAdd(calYm, -1)) localStorage.removeItem(k); } } catch (x) {}
+    try { stripDraw(); } catch (x) {}
+}
 function calPrefetch() { calFetch(calYm); calFetch(ymAdd(calYm, 1)); }
 function calLoad() {
     const [y, m] = calYm.split('-').map(Number), ym = calYm;
@@ -1058,7 +1063,7 @@ wzDraw();
     const ref = new URLSearchParams(location.search).get('ref');
     if (ref) { go('track'); try { history.replaceState(null, '', location.pathname); } catch (x) {} }
     loadInfo();
-    setTimeout(calPrefetch, 300);
+    calCacheLoad(); calPrefetch();
 })();
 </script>
 <script>if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
